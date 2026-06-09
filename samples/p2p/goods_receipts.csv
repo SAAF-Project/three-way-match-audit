@@ -1,0 +1,6 @@
+gr_number,po_number,item_description,quantity_received,receipt_date
+GR-001,PO-001,Office Chair,10,2024-03-15
+GR-002,PO-002,Laptop Stand,20,2024-03-16
+GR-003,PO-003,Network Cable 5m,100,2024-03-17
+GR-004,PO-004,Whiteboard Marker Set,50,2024-03-18
+GR-005,PO-005,Filing Cabinet,6,2024-03-19

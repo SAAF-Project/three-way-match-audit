@@ -1,0 +1,6 @@
+invoice_number,po_number,item_description,quantity_billed,unit_price_billed,invoice_date
+INV-2024-001,PO-001,Office Chair,10,150.00,2024-03-20
+INV-2024-002,PO-002,Laptop Stand,25,45.00,2024-03-21
+INV-2024-003,PO-003,Network Cable 5m,100,9.00,2024-03-22
+INV-2024-004,PO-004,Whiteboard Marker Set,50,12.00,2024-03-23
+INV-2024-005,PO-005,Filing Cabinet,6,220.00,2024-03-24
