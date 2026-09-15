@@ -1,0 +1,10 @@
+field,value
+document_number,GRN-2025-2317
+po_number,PO-2025-0142
+supplier,ACME Industrial BV
+date,2025-08-22
+
+line_number,sku,description,quantity
+1,SKU-A100,Widget A - roestvrij,50
+2,SKU-B200,Widget B - koperkleurig,20
+3,SKU-C300,Bevestigingsset,100

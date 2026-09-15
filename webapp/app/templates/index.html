@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Three-way Match — Upload</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="top">
+      <span>P2P AUDIT · 3-WAY MATCH</span>
+      <span>Intern gebruik</span>
+    </header>
+
+    <h1>3-way match uitvoeren</h1>
+    <p class="subtitle">
+      Upload de inkooporder, de goederenontvangst en de inkoopfactuur.
+      De applicatie vergelijkt de documenten op header- en regelniveau en
+      geeft per regel aan of ze matchen, waarschuwen of falen.
+    </p>
+
+    {% if error %}
+      <div class="error"><strong>Fout bij inlezen:</strong> {{ error }}</div>
+    {% endif %}
+
+    <form class="upload" action="/match" method="post" enctype="multipart/form-data">
+      <div class="uploads-grid">
+        <div class="upload-card">
+          <span class="doc-num">1</span>
+          <h3>Inkooporder</h3>
+          <p class="desc">De besteling zoals uitgegeven door inkoop (PO).</p>
+          <input type="file" name="po_file" accept=".csv,.json" required>
+        </div>
+        <div class="upload-card">
+          <span class="doc-num">2</span>
+          <h3>Goederenontvangst</h3>
+          <p class="desc">Pakbon of ontvangstbevestiging vanuit magazijn.</p>
+          <input type="file" name="grn_file" accept=".csv,.json" required>
+        </div>
+        <div class="upload-card">
+          <span class="doc-num">3</span>
+          <h3>Inkoopfactuur</h3>
+          <p class="desc">De factuur ontvangen van de leverancier.</p>
+          <input type="file" name="invoice_file" accept=".csv,.json" required>
+        </div>
+      </div>
+
+      <div class="section-label">Toleranties</div>
+      <div class="tolerances">
+        <div>
+          <label>Stukprijs (€)</label>
+          <input type="number" name="price_tolerance" value="0.01" step="0.01" min="0">
+        </div>
+        <div>
+          <label>Aantal (eenheden)</label>
+          <input type="number" name="qty_tolerance" value="0" step="0.5" min="0">
+        </div>
+        <div>
+          <label>Documenttotaal (€)</label>
+          <input type="number" name="total_tolerance" value="0.05" step="0.01" min="0">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" type="submit">Match uitvoeren</button>
+        <span class="sample-links">
+          Voorbeeld nodig?
+          <a href="/sample/po_sample.csv" download>PO</a> ·
+          <a href="/sample/grn_sample.csv" download>GRN</a> ·
+          <a href="/sample/invoice_sample.csv" download>Factuur</a>
+        </span>
+      </div>
+    </form>
+
+    <div class="section-label">Ondersteunde formaten</div>
+    <p style="color: var(--text-sec); font-size: 13px; margin: 0;">
+      CSV en JSON. Kolomnamen zijn flexibel — <code>quantity</code>/<code>qty</code>,
+      <code>unit_price</code>/<code>price</code>, <code>line_total</code>/<code>amount</code>
+      worden herkend. Bekijk <a href="/sample/po_sample.csv">de voorbeelden</a> voor de
+      exacte structuur.
+    </p>
+
+    <footer class="bot">
+      SAAF · Three-way Match Audit · Werkt lokaal — geen bestanden verlaten je machine.
+    </footer>
+  </div>
+</body>
+</html>
