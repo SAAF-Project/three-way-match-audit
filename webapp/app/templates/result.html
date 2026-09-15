@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Match-resultaat — 3-way match</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="top">
+      <span>P2P AUDIT · 3-WAY MATCH · RESULTAAT</span>
+      <span>Intern gebruik</span>
+    </header>
+
+    <h1>Match-resultaat</h1>
+    <p class="subtitle">
+      Vergelijking van {{ filenames.po }} · {{ filenames.grn }} · {{ filenames.invoice }}
+    </p>
+
+    {% set r = report %}
+
+    <div class="verdict-card {{ r.result }}">
+      <p class="verdict-label">Overall</p>
+      <p class="verdict-value">
+        {% if r.result == "MATCH" %}Match — alles komt overeen
+        {% elif r.result == "WARNING" %}Waarschuwing — non-materiële verschillen
+        {% else %}Fail — materiële afwijking gedetecteerd{% endif %}
+      </p>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-tile match">
+        <div class="n">{{ r.summary.MATCH }}</div>
+        <div class="lbl">Match</div>
+      </div>
+      <div class="summary-tile warning">
+        <div class="n">{{ r.summary.WARNING }}</div>
+        <div class="lbl">Warning</div>
+      </div>
+      <div class="summary-tile fail">
+        <div class="n">{{ r.summary.FAIL }}</div>
+        <div class="lbl">Fail</div>
+      </div>
+      <div class="summary-tile total">
+        <div class="n">€{{ "%.2f"|format(r.totals_discrepancy) }}</div>
+        <div class="lbl">Afwijking totaal</div>
+      </div>
+    </div>
+
+    <div class="doc-meta">
+      {% for key, label in [("po", "Inkooporder"), ("grn", "Goederenontvangst"), ("inv", "Factuur")] %}
+        {% set d = r[key] %}
+        <div class="doc">
+          <h4>{{ label }}</h4>
+          <dl>
+            <dt>Nummer</dt><dd>{{ d.document_number or "—" }}</dd>
+            <dt>PO-ref</dt><dd>{{ d.po_number or "—" }}</dd>
+            <dt>Leverancier</dt><dd>{{ d.supplier or "—" }}</dd>
+            <dt>Datum</dt><dd>{{ d.date or "—" }}</dd>
+            <dt>Regels</dt><dd>{{ d.line_count }}</dd>
+            <dt>Totaal</dt><dd>{% if d.total is not none %}€{{ "%.2f"|format(d.total) }}{% else %}—{% endif %}</dd>
+          </dl>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if r.header_issues %}
+      <div class="header-issues">
+        <h4>Header-issues</h4>
+        <ul>
+          {% for issue in r.header_issues %}<li>{{ issue }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <div class="section-label">Regelvergelijking</div>
+    <table class="lines">
+      <thead>
+        <tr>
+          <th>Regel</th>
+          <th>SKU / Omschrijving</th>
+          <th class="num">PO qty</th>
+          <th class="num">GRN qty</th>
+          <th class="num">Fact. qty</th>
+          <th class="num">PO prijs</th>
+          <th class="num">Fact. prijs</th>
+          <th class="num">PO totaal</th>
+          <th class="num">Fact. totaal</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in r.line_results %}
+          {% set cls = "diff-fail" if l.result == "FAIL" else ("diff-warn" if l.result == "WARNING" else "") %}
+          <tr>
+            <td>{{ l.line_number }}</td>
+            <td>
+              <strong>{{ l.sku or "—" }}</strong><br>
+              <span style="color: var(--text-sec); font-size: 11px;">{{ l.description }}</span>
+              {% if l.issues %}
+                <ul class="issues-list">
+                  {% for i in l.issues %}<li class="{{ cls }}">{{ i }}</li>{% endfor %}
+                </ul>
+              {% endif %}
+            </td>
+            <td class="num">{% if l.po_qty is not none %}{{ l.po_qty }}{% else %}—{% endif %}</td>
+            <td class="num">{% if l.grn_qty is not none %}{{ l.grn_qty }}{% else %}—{% endif %}</td>
+            <td class="num">{% if l.inv_qty is not none %}{{ l.inv_qty }}{% else %}—{% endif %}</td>
+            <td class="num">{% if l.po_price is not none %}€{{ "%.2f"|format(l.po_price) }}{% else %}—{% endif %}</td>
+            <td class="num">{% if l.inv_price is not none %}€{{ "%.2f"|format(l.inv_price) }}{% else %}—{% endif %}</td>
+            <td class="num">{% if l.po_total is not none %}€{{ "%.2f"|format(l.po_total) }}{% else %}—{% endif %}</td>
+            <td class="num">{% if l.inv_total is not none %}€{{ "%.2f"|format(l.inv_total) }}{% else %}—{% endif %}</td>
+            <td><span class="badge {{ l.result }}">{{ l.result }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <a href="/" class="back-link">← Nieuwe match uitvoeren</a>
+
+    <footer class="bot">
+      SAAF · Three-way Match Audit · Werkt lokaal — geen bestanden verlaten je machine.
+    </footer>
+  </div>
+</body>
+</html>
