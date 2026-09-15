@@ -1,0 +1,12 @@
+{
+  "document_number": "PO-2025-0142",
+  "po_number": "PO-2025-0142",
+  "supplier": "ACME Industrial BV",
+  "date": "2025-08-14",
+  "lines": [
+    { "line_number": 1, "sku": "SKU-A100", "description": "Widget A - roestvrij", "quantity": 50, "unit_price": 24.50, "line_total": 1225.00 },
+    { "line_number": 2, "sku": "SKU-B200", "description": "Widget B - koperkleurig", "quantity": 20, "unit_price": 89.00, "line_total": 1780.00 },
+    { "line_number": 3, "sku": "SKU-C300", "description": "Bevestigingsset", "quantity": 100, "unit_price": 3.75, "line_total": 375.00 }
+  ],
+  "total": 3380.00
+}
