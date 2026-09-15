@@ -1,0 +1,150 @@
+Security Review — Three-way Match Webapp
+=========================================
+Datum: 2026-09-15
+Reviewer: Claude (SAAF-Project/three-way-match-audit)
+
+================================================================================
+HOOG — Directe fix vereist
+================================================================================
+
+1. Path traversal in `/sample/{name}` — webapp/app/main.py:57-62
+-----------------------------------------------------------------
+De check `path.parent != SAMPLE_DIR` gebruikt geen `.resolve()`. Op sommige
+platformen kunnen symlinks of genormaliseerde paden (`//`, null-bytes) de check
+omzeilen.
+
+Kwetsbare code:
+    path = SAMPLE_DIR / name
+    if not path.exists() or not path.is_file() or path.parent != SAMPLE_DIR:
+
+Fix:
+    if not path.resolve().is_relative_to(SAMPLE_DIR.resolve()):
+        return JSONResponse({"error": "Voorbeeldbestand niet gevonden."}, status_code=404)
+
+
+2. Geen uploadgrootte-limiet — webapp/app/main.py:28-30
+--------------------------------------------------------
+Bestanden worden volledig in geheugen geladen zonder enige grootte-check.
+Een aanvaller kan een extreem groot bestand sturen en een out-of-memory DoS
+veroorzaken.
+
+Kwetsbare code:
+    po  = parse_document(await po_file.read(), ...)
+    grn = parse_document(await grn_file.read(), ...)
+    inv = parse_document(await invoice_file.read(), ...)
+
+Fix (voeg toe vóór parse_document-aanroepen):
+    MAX_UPLOAD = 5 * 1024 * 1024  # 5 MB
+    for uf in (po_file, grn_file, invoice_file):
+        data = await uf.read(MAX_UPLOAD + 1)
+        if len(data) > MAX_UPLOAD:
+            raise ParseError("Bestand te groot (max 5 MB).")
+        await uf.seek(0)
+
+
+================================================================================
+MIDDEL — Snel te repareren
+================================================================================
+
+3. Toleranties ongebonden — webapp/app/main.py:27-29
+-----------------------------------------------------
+Geen maximumwaarde op de tolerantie-parameters. Met `total_tolerance=9999999`
+matcht alles altijd, wat de audit-functionaliteit volledig uitholt.
+
+Kwetsbare code:
+    price_tolerance: float = Form(0.01),
+    qty_tolerance:   float = Form(0.0),
+    total_tolerance: float = Form(0.05),
+
+Fix (gebruik Annotated + Field):
+    from pydantic import Field
+    from typing import Annotated
+    price_tolerance: Annotated[float, Field(ge=0, le=100)] = Form(0.01),
+
+
+4. Geen rate limiting op /match en /api/match
+---------------------------------------------
+Beide endpoints doen CPU-intensief werk (parsen + matchen van drie bestanden).
+Er is geen throttling aanwezig. Een aanvaller kan met parallelle requests de
+server platleggen.
+
+Fix: voeg SlowAPI-middleware toe of gebruik een nginx reverse proxy met
+`limit_req_zone`.
+
+
+5. ParseError lekt interne foutdetails — webapp/app/main.py:33-38
+------------------------------------------------------------------
+ParseError-berichten worden direct als HTML-response teruggestuurd naar de
+gebruiker. Als er ooit een pad, bestandsnaam of systeemdetail in een
+ParseError-bericht terechtkomt, is dat zichtbaar voor de eindgebruiker.
+
+Kwetsbare code:
+    except ParseError as e:
+        return templates.TemplateResponse(
+            "index.html", {"request": request, "error": str(e)}, status_code=400
+        )
+
+Fix: log de volledige fout intern en stuur een generieke melding terug,
+of valideer dat ParseError-berichten nooit systeeminformatie bevatten.
+
+
+================================================================================
+LAAG — Defense-in-depth
+================================================================================
+
+6. `reload=True` in run.py:10
+------------------------------
+Hot-reload monitort continu het bestandssysteem. Nooit in productie gebruiken.
+
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+                                                                ^^^^^^^^^^^
+Fix: verwijder `reload=True` of maak het afhankelijk van een DEBUG-omgevingsvariabele.
+
+
+7. Geen HTTP security headers
+------------------------------
+De applicatie stuurt geen beveiligingsheaders terug:
+  - Content-Security-Policy
+  - X-Frame-Options
+  - X-Content-Type-Options
+
+Fix: voeg SecurityHeadersMiddleware toe (bijv. via `secure` package) of stel
+deze headers in op de reverse proxy.
+
+
+8. Geen authenticatie of autorisatie
+--------------------------------------
+De applicatie heeft geen toegangscontrole. Momenteel afgedekt doordat
+`host="127.0.0.1"` alleen lokale verbindingen toestaat, maar dat is één
+configuratiewijziging verwijderd van volledig open.
+
+Aanbeveling: als de app ooit op een gedeeld netwerk of server draait, voeg
+dan minimaal HTTP Basic Auth toe via een reverse proxy.
+
+
+================================================================================
+Wat NIET kwetsbaar is
+================================================================================
+
+  Controle                        Status
+  ------------------------------- ----------------------------------------
+  XSS via Jinja2-templates        VEILIG — autoescape ingeschakeld voor .html
+  SQL injection                   N.V.T. — geen database
+  SSRF                            N.V.T. — geen externe HTTP-calls
+  Hardcoded secrets               GEEN gevonden
+  JSON prototype pollution        VEILIG — standaard json.loads() is veilig
+  Bestandstype-bypass             VEILIG — backend valideert extensie
+  Absolute path override (/)      VEILIG — parent-check onderschept dit geval
+
+
+================================================================================
+Prioritering
+================================================================================
+
+  1. Fix uploadgrootte-limiet (#2) — concreet DoS-aanvalspad
+  2. Fix path traversal check (#1) — gebruik .resolve().is_relative_to()
+  3. Begrens toleranties (#3)     — data-integriteitsrisico
+  4. Voeg rate limiting toe (#4)  — DoS-hardening
+  5. Security headers (#7)        — als app buiten localhost komt
+
+================================================================================
