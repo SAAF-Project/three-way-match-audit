@@ -12,11 +12,25 @@ from pathlib import Path
 SAMPLES_DIR = Path("samples/p2p")
 PRICE_TOLERANCE = 0.01  # 1 cent
 
+REQUIRED_COLUMNS = {
+    "purchase_orders.csv": {"po_number", "vendor", "item_description", "quantity", "unit_price"},
+    "goods_receipts.csv": {"po_number", "quantity_received", "receipt_date"},
+    "invoices.csv": {"po_number", "quantity_billed", "unit_price_billed", "invoice_date"},
+}
+
 
 def load_csv(filename):
     path = SAMPLES_DIR / filename
     with open(path, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+        rows = list(csv.DictReader(f))
+    required = REQUIRED_COLUMNS.get(filename, set())
+    if rows:
+        missing = required - set(rows[0].keys())
+        if missing:
+            raise ValueError(
+                f"{filename} is missing required column(s): {', '.join(sorted(missing))}"
+            )
+    return rows
 
 
 def match(po_file="purchase_orders.csv", gr_file="goods_receipts.csv", inv_file="invoices.csv"):
