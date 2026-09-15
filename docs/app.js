@@ -406,6 +406,56 @@ function readFile(file) {
   });
 }
 
+async function readFileBoth(file) {
+  const buf = await file.arrayBuffer();
+  const text = new TextDecoder("utf-8").decode(buf);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  const sha256 = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+  return { text, sha256, size: buf.byteLength };
+}
+
+const SCHEMA_VERSION = "1.0";
+const TOOL_NAME = "SAAF Three-way Match";
+const TOOL_VERSION = "0.1.0";
+
+function buildWorkpaper({ sources, parsed, report, parameters }) {
+  return {
+    audit_workpaper: {
+      schema_version: SCHEMA_VERSION,
+      generated_at: new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00"),
+      tool: { name: TOOL_NAME, version: TOOL_VERSION },
+      match_parameters: parameters,
+    },
+    source_data: {
+      purchase_order:   { ...sources.po,  parsed: parsed.po },
+      goods_receipt:    { ...sources.grn, parsed: parsed.grn },
+      purchase_invoice: { ...sources.inv, parsed: parsed.inv },
+    },
+    match_result: {
+      verdict: report.result,
+      summary: report.summary,
+      header_issues: report.header_issues,
+      line_results: report.line_results,
+      totals: {
+        po_total: report.po_total,
+        grn_total: report.grn_total,
+        inv_total: report.inv_total,
+        discrepancy: report.totals_discrepancy,
+      },
+    },
+    attestation: { reviewed_by: "", reviewed_at: "", notes: "" },
+  };
+}
+
+function workpaperFilename(report) {
+  const po = report.po || {};
+  const poNum = (po.po_number || po.document_number || "unknown").replace(/\//g, "_");
+  const verdict = report.result || "UNKNOWN";
+  const now = new Date();
+  const stamp = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, "0")}${String(now.getUTCDate()).padStart(2, "0")}`;
+  return `audit_workpaper_${poNum}_${verdict}_${stamp}.json`;
+}
+
 form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   clearError();
@@ -423,18 +473,26 @@ form.addEventListener("submit", async (ev) => {
     total_tolerance: parseFloat(fd.get("total_tolerance")) || 0,
   };
   try {
-    const [poText, grnText, invText] = await Promise.all([readFile(po_file), readFile(grn_file), readFile(inv_file)]);
-    const po = parseDocument(poText, po_file.name, "PO");
-    const grn = parseDocument(grnText, grn_file.name, "GRN");
-    const inv = parseDocument(invText, inv_file.name, "INVOICE");
-    const report = threeWayMatch(po, grn, inv, tol);
-    renderResult(report, { po: po_file.name, grn: grn_file.name, invoice: inv_file.name });
+    const [poR, grnR, invR] = await Promise.all([readFileBoth(po_file), readFileBoth(grn_file), readFileBoth(inv_file)]);
+    const parsed = {
+      po:  parseDocument(poR.text,  po_file.name,  "PO"),
+      grn: parseDocument(grnR.text, grn_file.name, "GRN"),
+      inv: parseDocument(invR.text, inv_file.name, "INVOICE"),
+    };
+    const sources = {
+      po:  { filename: po_file.name,  size_bytes: poR.size,  sha256: poR.sha256 },
+      grn: { filename: grn_file.name, size_bytes: grnR.size, sha256: grnR.sha256 },
+      inv: { filename: inv_file.name, size_bytes: invR.size, sha256: invR.sha256 },
+    };
+    const report = threeWayMatch(parsed.po, parsed.grn, parsed.inv, tol);
+    const workpaper = buildWorkpaper({ sources, parsed, report, parameters: tol });
+    renderResult(report, { po: po_file.name, grn: grn_file.name, invoice: inv_file.name }, workpaper);
   } catch (e) {
     showError(e.message || String(e));
   }
 });
 
-function renderResult(r, filenames) {
+function renderResult(r, filenames, workpaper) {
   const verdictText = {
     MATCH: "Match — alles komt overeen",
     WARNING: "Waarschuwing — non-materiële verschillen",
@@ -524,6 +582,22 @@ function renderResult(r, filenames) {
       <tbody>${linesHtml}</tbody>
     </table>
 
+    <div class="section-label">Auditbestand</div>
+    <div class="workpaper-panel">
+      <div class="workpaper-copy">
+        <strong>Reproduceerbaar auditbestand</strong>
+        <p>
+          Één JSON-document met SHA-256 van elk bronbestand, de gebruikte toleranties, de
+          geparste brondata en het volledige matchresultaat. Bedoeld om als bewijs bij het
+          auditdossier te voegen — een reviewer kan hetzelfde bestand door de matcher halen
+          en moet exact hetzelfde resultaat krijgen.
+        </p>
+      </div>
+      <button type="button" class="primary" id="download-workpaper">
+        Download auditbestand (.json)
+      </button>
+    </div>
+
     <a href="#" class="back-link" id="back-link">← Nieuwe match uitvoeren</a>
   `;
 
@@ -536,5 +610,18 @@ function renderResult(r, filenames) {
     resultView.hidden = true;
     uploadView.hidden = false;
     form.reset();
+  });
+
+  document.getElementById("download-workpaper").addEventListener("click", () => {
+    const body = JSON.stringify(workpaper, null, 2);
+    const blob = new Blob([body], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = workpaperFilename(r);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   });
 }

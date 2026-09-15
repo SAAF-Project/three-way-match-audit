@@ -1,0 +1,205 @@
+{
+  "audit_workpaper": {
+    "schema_version": "1.0",
+    "generated_at": "2026-09-15T13:28:00+00:00",
+    "tool": {
+      "name": "SAAF Three-way Match",
+      "version": "0.1.0"
+    },
+    "match_parameters": {
+      "price_tolerance": 0.01,
+      "qty_tolerance": 0.0,
+      "total_tolerance": 0.05
+    }
+  },
+  "source_data": {
+    "purchase_order": {
+      "filename": "po_sample.csv",
+      "size_bytes": 312,
+      "sha256": "e314190ca670e3fc0c32c560722cbf109d278535db0bb73f09059bb2e0e59822",
+      "parsed": {
+        "document_type": "PO",
+        "document_number": "PO-2025-0142",
+        "po_number": "PO-2025-0142",
+        "supplier": "ACME Industrial BV",
+        "date": "2025-08-14",
+        "lines": [
+          {
+            "line_number": 1,
+            "sku": "SKU-A100",
+            "description": "Widget A - roestvrij",
+            "quantity": 50.0,
+            "unit_price": 24.5,
+            "line_total": 1225.0
+          },
+          {
+            "line_number": 2,
+            "sku": "SKU-B200",
+            "description": "Widget B - koperkleurig",
+            "quantity": 20.0,
+            "unit_price": 89.0,
+            "line_total": 1780.0
+          },
+          {
+            "line_number": 3,
+            "sku": "SKU-C300",
+            "description": "Bevestigingsset",
+            "quantity": 100.0,
+            "unit_price": 3.75,
+            "line_total": 375.0
+          }
+        ],
+        "total": 3380.0
+      }
+    },
+    "goods_receipt": {
+      "filename": "grn_sample.csv",
+      "size_bytes": 251,
+      "sha256": "8a8f2010d4c82a4897a6b4aabcb1e28e0dc4391c984be953c05e5ae45e254c67",
+      "parsed": {
+        "document_type": "GRN",
+        "document_number": "GRN-2025-2317",
+        "po_number": "PO-2025-0142",
+        "supplier": "ACME Industrial BV",
+        "date": "2025-08-22",
+        "lines": [
+          {
+            "line_number": 1,
+            "sku": "SKU-A100",
+            "description": "Widget A - roestvrij",
+            "quantity": 50.0,
+            "unit_price": null,
+            "line_total": null
+          },
+          {
+            "line_number": 2,
+            "sku": "SKU-B200",
+            "description": "Widget B - koperkleurig",
+            "quantity": 20.0,
+            "unit_price": null,
+            "line_total": null
+          },
+          {
+            "line_number": 3,
+            "sku": "SKU-C300",
+            "description": "Bevestigingsset",
+            "quantity": 100.0,
+            "unit_price": null,
+            "line_total": null
+          }
+        ],
+        "total": null
+      }
+    },
+    "purchase_invoice": {
+      "filename": "invoice_mismatch.csv",
+      "size_bytes": 313,
+      "sha256": "50bed9593cc3a65e7fb7350291ca520443f053f97b6ff259d4c904ed769bfcce",
+      "parsed": {
+        "document_type": "INVOICE",
+        "document_number": "INV-2025-8892",
+        "po_number": "PO-2025-0142",
+        "supplier": "ACME Industrial BV",
+        "date": "2025-08-25",
+        "lines": [
+          {
+            "line_number": 1,
+            "sku": "SKU-A100",
+            "description": "Widget A - roestvrij",
+            "quantity": 50.0,
+            "unit_price": 26.0,
+            "line_total": 1300.0
+          },
+          {
+            "line_number": 2,
+            "sku": "SKU-B200",
+            "description": "Widget B - koperkleurig",
+            "quantity": 22.0,
+            "unit_price": 89.0,
+            "line_total": 1958.0
+          },
+          {
+            "line_number": 3,
+            "sku": "SKU-C300",
+            "description": "Bevestigingsset",
+            "quantity": 100.0,
+            "unit_price": 3.75,
+            "line_total": 375.0
+          }
+        ],
+        "total": 3633.0
+      }
+    }
+  },
+  "match_result": {
+    "verdict": "FAIL",
+    "summary": {
+      "MATCH": 1,
+      "WARNING": 0,
+      "FAIL": 2
+    },
+    "header_issues": [
+      "Totale afwijking PO ↔ factuur: €253.00 (PO €3,380.00 → factuur €3,633.00)."
+    ],
+    "line_results": [
+      {
+        "line_number": 1,
+        "sku": "SKU-A100",
+        "description": "Widget A - roestvrij",
+        "po_qty": 50.0,
+        "grn_qty": 50.0,
+        "inv_qty": 50.0,
+        "po_price": 24.5,
+        "inv_price": 26.0,
+        "po_total": 1225.0,
+        "inv_total": 1300.0,
+        "result": "FAIL",
+        "issues": [
+          "Stukprijs wijkt af: PO €24.50 → factuur €26.00."
+        ]
+      },
+      {
+        "line_number": 2,
+        "sku": "SKU-B200",
+        "description": "Widget B - koperkleurig",
+        "po_qty": 20.0,
+        "grn_qty": 20.0,
+        "inv_qty": 22.0,
+        "po_price": 89.0,
+        "inv_price": 89.0,
+        "po_total": 1780.0,
+        "inv_total": 1958.0,
+        "result": "FAIL",
+        "issues": [
+          "Gefactureerd aantal wijkt af van PO: 22 vs 20.",
+          "Gefactureerd aantal groter dan ontvangen: 22 vs 20."
+        ]
+      },
+      {
+        "line_number": 3,
+        "sku": "SKU-C300",
+        "description": "Bevestigingsset",
+        "po_qty": 100.0,
+        "grn_qty": 100.0,
+        "inv_qty": 100.0,
+        "po_price": 3.75,
+        "inv_price": 3.75,
+        "po_total": 375.0,
+        "inv_total": 375.0,
+        "result": "MATCH",
+        "issues": []
+      }
+    ],
+    "totals": {
+      "po_total": 3380.0,
+      "grn_total": null,
+      "inv_total": 3633.0,
+      "discrepancy": 253.0
+    }
+  },
+  "attestation": {
+    "reviewed_by": "",
+    "reviewed_at": "",
+    "notes": ""
+  }
+}

@@ -117,6 +117,38 @@
       </tbody>
     </table>
 
+    <div class="section-label">Auditbestand</div>
+    <div class="workpaper-panel">
+      <div class="workpaper-copy">
+        <strong>Reproduceerbaar auditbestand</strong>
+        <p>
+          Één JSON-document met SHA-256 van elk bronbestand, de gebruikte toleranties, de
+          geparste brondata en het volledige matchresultaat. Bedoeld om als bewijs bij het
+          auditdossier te voegen — een reviewer kan hetzelfde bestand door de matcher halen
+          en moet exact hetzelfde resultaat krijgen.
+        </p>
+      </div>
+      <button type="button" class="primary" id="download-workpaper">
+        Download auditbestand (.json)
+      </button>
+    </div>
+
+    <script id="workpaper-data" type="application/json">{{ workpaper_json | safe }}</script>
+    <script>
+      document.getElementById("download-workpaper").addEventListener("click", () => {
+        const data = document.getElementById("workpaper-data").textContent;
+        const blob = new Blob([data], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = {{ workpaper_filename | tojson }};
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+    </script>
+
     <a href="/" class="back-link">← Nieuwe match uitvoeren</a>
 
     <footer class="bot">

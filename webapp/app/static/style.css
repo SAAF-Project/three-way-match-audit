@@ -366,6 +366,34 @@ table.lines .diff-warn { color: var(--amb-dark); font-weight: 600; }
 }
 .back-link:hover { text-decoration: underline; }
 
+.workpaper-panel {
+  background: var(--blu-light);
+  border: 1px solid var(--gray-line);
+  border-left: 4px solid var(--blu-dark);
+  border-radius: 6px;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+@media (max-width: 720px) {
+  .workpaper-panel { grid-template-columns: 1fr; }
+}
+.workpaper-copy strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-pri);
+  margin-bottom: 4px;
+}
+.workpaper-copy p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-sec);
+  line-height: 1.5;
+}
+
 footer.bot {
   margin-top: 40px;
   padding-top: 16px;
