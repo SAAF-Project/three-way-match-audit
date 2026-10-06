@@ -21,12 +21,18 @@
     {% set r = report %}
 
     <div class="verdict-card {{ r.result }}">
-      <p class="verdict-label">Overall</p>
+      <p class="verdict-label">Audit Uitkomst{% if narrative %} · AI Risicobeoordeling{% endif %}</p>
       <p class="verdict-value">
         {% if r.result == "MATCH" %}Match — alles komt overeen
         {% elif r.result == "WARNING" %}Waarschuwing — non-materiële verschillen
         {% else %}Fail — materiële afwijking gedetecteerd{% endif %}
+        {% if narrative %}
+          <span class="badge {{ narrative.risk_level }}" style="vertical-align: middle; margin-left: 12px;">{{ narrative.risk_level }}</span>
+        {% endif %}
       </p>
+      {% if narrative %}
+        <p class="verdict-summary">{{ narrative.summary }}</p>
+      {% endif %}
     </div>
 
     <div class="summary-grid">
@@ -74,7 +80,16 @@
       </div>
     {% endif %}
 
-    <div class="section-label">Regelvergelijking</div>
+    {% if narrative and narrative.patterns %}
+      <div class="header-issues patterns-block">
+        <h4>Gedetecteerde patronen</h4>
+        <ul>
+          {% for p in narrative.patterns %}<li>{{ p }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <div class="section-label">Regelvergelijking{% if narrative %} met AI-aanbevelingen{% endif %}</div>
     <table class="lines">
       <thead>
         <tr>
@@ -87,12 +102,19 @@
           <th class="num">Fact. prijs</th>
           <th class="num">PO totaal</th>
           <th class="num">Fact. totaal</th>
-          <th>Result</th>
+          <th>Verdict</th>
+          {% if narrative %}<th>Aanbeveling</th>{% endif %}
         </tr>
       </thead>
       <tbody>
         {% for l in r.line_results %}
           {% set cls = "diff-fail" if l.result == "FAIL" else ("diff-warn" if l.result == "WARNING" else "") %}
+          {% set ns = namespace(finding=None) %}
+          {% if narrative %}
+            {% for f in narrative.findings %}
+              {% if f.line == l.sku %}{% set ns.finding = f %}{% endif %}
+            {% endfor %}
+          {% endif %}
           <tr>
             <td>{{ l.line_number }}</td>
             <td>
@@ -112,56 +134,24 @@
             <td class="num">{% if l.po_total is not none %}€{{ "%.2f"|format(l.po_total) }}{% else %}—{% endif %}</td>
             <td class="num">{% if l.inv_total is not none %}€{{ "%.2f"|format(l.inv_total) }}{% else %}—{% endif %}</td>
             <td><span class="badge {{ l.result }}">{{ l.result }}</span></td>
+            {% if narrative %}
+              <td>
+                {% if ns.finding %}
+                  <span class="badge {{ ns.finding.risk }}" style="font-size: 9px; display: inline-block; margin-bottom: 4px;">{{ ns.finding.risk }}</span>
+                  <div class="ai-rec">{{ ns.finding.recommendation }}</div>
+                {% else %}
+                  <span style="color: var(--text-hint);">—</span>
+                {% endif %}
+              </td>
+            {% endif %}
           </tr>
         {% endfor %}
       </tbody>
     </table>
 
     {% if narrative %}
-      <div class="section-label">AI Audit Assessment <span style="font-size:11px; font-weight:400; color:var(--text-sec); margin-left:8px;">(advisory — rule-based verdict above is authoritative)</span></div>
-
-      <div class="verdict-card ai-card risk-{{ narrative.risk_level }}">
-        <p class="verdict-label">AI risicobeoordeling</p>
-        <p class="verdict-value">
-          <span class="badge {{ narrative.risk_level }}">{{ narrative.risk_level }}</span>
-          {{ narrative.summary }}
-        </p>
-      </div>
-
-      {% if narrative.patterns %}
-        <div class="header-issues ai-patterns">
-          <h4>Gedetecteerde patronen</h4>
-          <ul>
-            {% for p in narrative.patterns %}<li>{{ p }}</li>{% endfor %}
-          </ul>
-        </div>
-      {% endif %}
-
-      {% if narrative.findings %}
-        <table class="lines ai-findings">
-          <thead>
-            <tr>
-              <th>Regel</th>
-              <th>Bevinding</th>
-              <th>Risico</th>
-              <th>Aanbeveling</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for f in narrative.findings %}
-              <tr>
-                <td><strong>{{ f.line }}</strong></td>
-                <td>{{ f.issue }}</td>
-                <td><span class="badge {{ f.risk }}">{{ f.risk }}</span></td>
-                <td>{{ f.recommendation }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% endif %}
-
-      <div class="ai-overall">
-        <strong>Algehele aanbeveling:</strong> {{ narrative.overall_recommendation }}
+      <div class="action-banner">
+        <strong>Aanbevolen actie:</strong> {{ narrative.overall_recommendation }}
       </div>
     {% endif %}
 
@@ -170,7 +160,7 @@
         <a class="download-link" href="data:application/json;charset=utf-8,{{ audit_log_json | urlencode }}" download="audit_trail.json">
           ↓ Download audittrail (JSON)
         </a>
-        <span class="audit-trail-note">Bevat SHA-256 hashes van de invoerbestanden, matchresultaat en AI-beoordeling voor heruitvoering.</span>
+        <span class="audit-trail-note">Bevat SHA-256 hashes van de invoerbestanden, matchresultaat en AI-aanbevelingen voor heruitvoering.</span>
       </div>
     {% endif %}
 
