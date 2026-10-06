@@ -1,7 +1,9 @@
-"""Claude audit agent — reads a MatchReport, returns a structured AuditNarrative.
+"""Gemini audit agent — reads a MatchReport, returns a structured AuditNarrative.
 
 The agent is READ-ONLY: it contextualises and explains the findings produced by
 the rule-based matcher. It cannot change verdicts, tolerances, or any audit output.
+
+Requires GEMINI_API_KEY environment variable (free tier at aistudio.google.com).
 """
 from __future__ import annotations
 
@@ -9,7 +11,7 @@ import json
 import os
 from typing import Any
 
-_MODEL = "claude-opus-5-5"
+_MODEL = "gemini-2.0-flash"
 
 _SYSTEM_PROMPT = """You are a read-only audit reviewer specialising in Procure-to-Pay (P2P) controls and the IIA audit framework.
 
@@ -46,21 +48,29 @@ Include a finding only for lines with FAIL or WARNING verdicts. Do not fabricate
 
 
 def audit_narrative(match_report: dict[str, Any]) -> dict[str, Any] | None:
-    """Call Claude with the match report and return a structured AuditNarrative dict.
+    """Call Gemini with the match report and return a structured AuditNarrative dict.
 
-    Returns None if ANTHROPIC_API_KEY is not set or if the call fails — the caller
+    Returns None if GEMINI_API_KEY is not set or if the call fails — the caller
     falls back gracefully to the rule-based report alone.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return None
 
     try:
-        import anthropic
+        import google.generativeai as genai
     except ImportError:
         return None
 
-    client = anthropic.Anthropic(api_key=api_key)
+    genai.configure(api_key=api_key)
+
+    model = genai.GenerativeModel(
+        model_name=_MODEL,
+        system_instruction=_SYSTEM_PROMPT,
+        generation_config=genai.GenerationConfig(
+            response_mime_type="application/json",
+        ),
+    )
 
     user_message = (
         "Here is the three-way match report to review:\n\n"
@@ -69,16 +79,7 @@ def audit_narrative(match_report: dict[str, Any]) -> dict[str, Any] | None:
     )
 
     try:
-        response = client.messages.create(
-            model=_MODEL,
-            max_tokens=4096,
-            system=_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
-        )
-        for block in response.content:
-            if block.type == "text":
-                return json.loads(block.text)
+        response = model.generate_content(user_message)
+        return json.loads(response.text)
     except Exception:
         return None
-
-    return None

@@ -12,7 +12,7 @@ import os
 from datetime import UTC, datetime
 from typing import Any
 
-_MODEL = "claude-opus-5-5"
+_MODEL = "gemini-2.0-flash"
 _APP_VERSION = "0.2.0"
 
 
