@@ -58,19 +58,12 @@ def audit_narrative(match_report: dict[str, Any]) -> dict[str, Any] | None:
         return None
 
     try:
-        import google.generativeai as genai
+        from google import genai
+        from google.genai import types
     except ImportError:
         return None
 
-    genai.configure(api_key=api_key)
-
-    model = genai.GenerativeModel(
-        model_name=_MODEL,
-        system_instruction=_SYSTEM_PROMPT,
-        generation_config=genai.GenerationConfig(
-            response_mime_type="application/json",
-        ),
-    )
+    client = genai.Client(api_key=api_key)
 
     user_message = (
         "Here is the three-way match report to review:\n\n"
@@ -79,7 +72,14 @@ def audit_narrative(match_report: dict[str, Any]) -> dict[str, Any] | None:
     )
 
     try:
-        response = model.generate_content(user_message)
+        response = client.models.generate_content(
+            model=_MODEL,
+            contents=user_message,
+            config=types.GenerateContentConfig(
+                system_instruction=_SYSTEM_PROMPT,
+                response_mime_type="application/json",
+            ),
+        )
         return json.loads(response.text)
     except Exception:
         return None
