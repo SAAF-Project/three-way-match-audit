@@ -12,7 +12,7 @@ import os
 from datetime import UTC, datetime
 from typing import Any
 
-_MODEL = "gemini-3.8-flash"
+_MODEL = "gemini-flash-lite-latest"
 _APP_VERSION = "0.2.0"
 
 

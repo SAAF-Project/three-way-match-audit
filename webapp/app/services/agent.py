@@ -11,7 +11,7 @@ import json
 import os
 from typing import Any
 
-_MODEL = "gemini-3.8-flash"
+_MODEL = "gemini-flash-lite-latest"
 
 _SYSTEM_PROMPT = """You are a read-only audit reviewer specialising in Procure-to-Pay (P2P) controls and the IIA audit framework.
 
