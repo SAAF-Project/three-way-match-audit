@@ -1,0 +1,103 @@
+{
+  "lang_code": "nl",
+  "lang_html_attr": "nl",
+  "lang_label": "NL",
+  "ui": {
+    "header_badge_upload": "P2P AUDIT · 3-WAY MATCH",
+    "header_badge_result": "P2P AUDIT · 3-WAY MATCH · RESULTAAT",
+    "header_right": "Intern gebruik",
+    "lang_switch_aria": "Taal wisselen",
+    "footer_text": "SAAF · Three-way Match Audit · Werkt lokaal — geen bestanden verlaten je machine.",
+
+    "upload_title": "3-way match uitvoeren",
+    "upload_subtitle": "Upload de inkooporder, de goederenontvangst en de inkoopfactuur. De applicatie vergelijkt de documenten op header- en regelniveau en geeft per regel aan of ze matchen, waarschuwen of falen.",
+    "error_prefix": "Fout bij inlezen:",
+
+    "doc_po_name": "Inkooporder",
+    "doc_po_desc": "De besteling zoals uitgegeven door inkoop (PO).",
+    "doc_grn_name": "Goederenontvangst",
+    "doc_grn_desc": "Pakbon of ontvangstbevestiging vanuit magazijn.",
+    "doc_inv_name": "Inkoopfactuur",
+    "doc_inv_desc": "De factuur ontvangen van de leverancier.",
+
+    "tolerances_section": "Toleranties",
+    "tol_price_label": "Stukprijs (€)",
+    "tol_price_hint_html": "Max. afwijking op <em>unit price</em> tussen PO en factuur.",
+    "tol_qty_label": "Aantal (eenheden)",
+    "tol_qty_hint_html": "Max. afwijking op <em>quantity</em> tussen PO, GRN en factuur.",
+    "tol_line_total_label": "Regeltotaal (€)",
+    "tol_line_total_hint_html": "Max. afwijking op <em>line amount</em> tussen PO en factuur.",
+    "tol_total_label": "Documenttotaal (€)",
+    "tol_total_hint_html": "Max. afwijking op <em>grand total</em> tussen PO en factuur.",
+
+    "presets_label": "Snelkeuze:",
+    "preset_strict": "Strikt",
+    "preset_standard": "Standaard",
+    "preset_relaxed": "Soepel",
+
+    "submit_button": "Match uitvoeren",
+    "sample_prompt": "Voorbeeld nodig?",
+    "sample_po": "PO",
+    "sample_grn": "GRN",
+    "sample_invoice": "Factuur",
+
+    "formats_section": "Ondersteunde formaten",
+    "formats_text_html": "CSV en JSON. Kolomnamen zijn flexibel — <code>quantity</code>/<code>qty</code>, <code>unit_price</code>/<code>price</code>, <code>line_total</code>/<code>amount</code> worden herkend. Bekijk <a href=\"/sample/po_sample.csv\">de voorbeelden</a> voor de exacte structuur.",
+
+    "result_title": "Match-resultaat",
+    "result_subtitle_prefix": "Vergelijking van",
+    "overall_label": "Overall",
+    "verdict_match_text": "Match — alles komt overeen",
+    "verdict_warning_text": "Waarschuwing — non-materiële verschillen",
+    "verdict_fail_text": "Fail — materiële afwijking gedetecteerd",
+
+    "summary_match": "Match",
+    "summary_warning": "Warning",
+    "summary_fail": "Fail",
+    "summary_discrepancy": "Afwijking totaal",
+
+    "doc_po_short": "Inkooporder",
+    "doc_grn_short": "Goederenontvangst",
+    "doc_inv_short": "Factuur",
+    "doc_field_number": "Nummer",
+    "doc_field_po_ref": "PO-ref",
+    "doc_field_supplier": "Leverancier",
+    "doc_field_date": "Datum",
+    "doc_field_lines": "Regels",
+    "doc_field_total": "Totaal",
+
+    "header_issues_label": "Header-issues",
+    "lines_section": "Regelvergelijking",
+    "col_line": "Regel",
+    "col_sku": "SKU / Omschrijving",
+    "col_po_qty": "PO qty",
+    "col_grn_qty": "GRN qty",
+    "col_inv_qty": "Fact. qty",
+    "col_po_price": "PO prijs",
+    "col_inv_price": "Fact. prijs",
+    "col_po_total": "PO totaal",
+    "col_inv_total": "Fact. totaal",
+    "col_result": "Result",
+
+    "back_link": "← Nieuwe match uitvoeren"
+  },
+  "msg": {
+    "po_missing_number": "PO bevat geen inkoopordernummer.",
+    "po_ref_grn_differs": "PO-referentie op goederenontvangst wijkt af: '{grn_po}' vs PO '{po_num}'.",
+    "po_ref_inv_differs": "PO-referentie op factuur wijkt af: '{inv_po}' vs PO '{po_num}'.",
+    "supplier_inconsistent": "Leveranciernaam is niet consistent tussen documenten: {names}.",
+    "total_discrepancy": "Totale afwijking PO ↔ factuur: {disc} (PO {po_total} → factuur {inv_total}).",
+
+    "line_missing_po": "Regel ontbreekt op de inkooporder.",
+    "line_missing_inv": "Regel ontbreekt op de factuur.",
+    "line_missing_grn": "Regel ontbreekt op de goederenontvangst.",
+
+    "qty_billed_vs_po": "Gefactureerd aantal wijkt af van PO: {inv_qty} vs {po_qty}.",
+    "qty_received_more_po": "Ontvangen aantal groter dan besteld: {grn_qty} vs {po_qty}.",
+    "qty_received_less_po": "Ontvangen aantal minder dan besteld: {grn_qty} vs {po_qty}.",
+    "qty_billed_vs_grn": "Gefactureerd aantal groter dan ontvangen: {inv_qty} vs {grn_qty}.",
+
+    "price_differs": "Stukprijs wijkt af: PO {po_price} → factuur {inv_price}.",
+    "line_total_differs": "Regeltotaal wijkt af: PO {po_total} → factuur {inv_total}."
+  }
+}

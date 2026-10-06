@@ -42,7 +42,47 @@ header.top {
   text-transform: uppercase;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin: -32px -24px 32px;
+}
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.top-right-label {
+  font-size: 11px;
+  color: var(--text-hint);
+  letter-spacing: 0.08em;
+}
+
+.lang-switcher {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: white;
+  border: 1px solid var(--gray-line);
+  border-radius: 4px;
+}
+
+.lang-link {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-sec);
+  text-decoration: none;
+  border-radius: 3px;
+  transition: all 100ms;
+}
+
+.lang-link:hover { color: var(--blu-dark); background: var(--blu-light); }
+
+.lang-link.active {
+  background: var(--blu-dark);
+  color: white;
 }
 
 h1 {

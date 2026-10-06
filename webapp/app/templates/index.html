@@ -1,103 +1,97 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ t.lang_html_attr }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Three-way Match — Upload</title>
+  <title>{{ t.ui.upload_title }} — SAAF</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <div class="container">
     <header class="top">
-      <span>P2P AUDIT · 3-WAY MATCH</span>
-      <span>Intern gebruik</span>
+      <span>{{ t.ui.header_badge_upload }}</span>
+      <div class="top-right">
+        {% include "_lang_switcher.html" %}
+        <span class="top-right-label">{{ t.ui.header_right }}</span>
+      </div>
     </header>
 
-    <h1>3-way match uitvoeren</h1>
-    <p class="subtitle">
-      Upload de inkooporder, de goederenontvangst en de inkoopfactuur.
-      De applicatie vergelijkt de documenten op header- en regelniveau en
-      geeft per regel aan of ze matchen, waarschuwen of falen.
-    </p>
+    <h1>{{ t.ui.upload_title }}</h1>
+    <p class="subtitle">{{ t.ui.upload_subtitle }}</p>
 
     {% if error %}
-      <div class="error"><strong>Fout bij inlezen:</strong> {{ error }}</div>
+      <div class="error"><strong>{{ t.ui.error_prefix }}</strong> {{ error }}</div>
     {% endif %}
 
     <form class="upload" action="/match" method="post" enctype="multipart/form-data">
       <div class="uploads-grid">
         <div class="upload-card">
           <span class="doc-num">1</span>
-          <h3>Inkooporder</h3>
-          <p class="desc">De besteling zoals uitgegeven door inkoop (PO).</p>
+          <h3>{{ t.ui.doc_po_name }}</h3>
+          <p class="desc">{{ t.ui.doc_po_desc }}</p>
           <input type="file" name="po_file" accept=".csv,.json" required>
         </div>
         <div class="upload-card">
           <span class="doc-num">2</span>
-          <h3>Goederenontvangst</h3>
-          <p class="desc">Pakbon of ontvangstbevestiging vanuit magazijn.</p>
+          <h3>{{ t.ui.doc_grn_name }}</h3>
+          <p class="desc">{{ t.ui.doc_grn_desc }}</p>
           <input type="file" name="grn_file" accept=".csv,.json" required>
         </div>
         <div class="upload-card">
           <span class="doc-num">3</span>
-          <h3>Inkoopfactuur</h3>
-          <p class="desc">De factuur ontvangen van de leverancier.</p>
+          <h3>{{ t.ui.doc_inv_name }}</h3>
+          <p class="desc">{{ t.ui.doc_inv_desc }}</p>
           <input type="file" name="invoice_file" accept=".csv,.json" required>
         </div>
       </div>
 
-      <div class="section-label">Toleranties</div>
+      <div class="section-label">{{ t.ui.tolerances_section }}</div>
       <div class="tolerances">
         <div class="tol-field">
-          <label>Stukprijs (€)</label>
+          <label>{{ t.ui.tol_price_label }}</label>
           <input type="number" name="price_tolerance" value="0.01" step="0.01" min="0">
-          <span class="tol-hint">Max. afwijking op <em>unit price</em> tussen PO en factuur.</span>
+          <span class="tol-hint">{{ t.ui.tol_price_hint_html | safe }}</span>
         </div>
         <div class="tol-field">
-          <label>Aantal (eenheden)</label>
+          <label>{{ t.ui.tol_qty_label }}</label>
           <input type="number" name="qty_tolerance" value="0" step="0.5" min="0">
-          <span class="tol-hint">Max. afwijking op <em>quantity</em> tussen PO, GRN en factuur.</span>
+          <span class="tol-hint">{{ t.ui.tol_qty_hint_html | safe }}</span>
         </div>
         <div class="tol-field">
-          <label>Regeltotaal (€)</label>
+          <label>{{ t.ui.tol_line_total_label }}</label>
           <input type="number" name="line_total_tolerance" value="0.01" step="0.01" min="0">
-          <span class="tol-hint">Max. afwijking op <em>line amount</em> tussen PO en factuur.</span>
+          <span class="tol-hint">{{ t.ui.tol_line_total_hint_html | safe }}</span>
         </div>
         <div class="tol-field">
-          <label>Documenttotaal (€)</label>
+          <label>{{ t.ui.tol_total_label }}</label>
           <input type="number" name="total_tolerance" value="0.05" step="0.01" min="0">
-          <span class="tol-hint">Max. afwijking op <em>grand total</em> tussen PO en factuur.</span>
+          <span class="tol-hint">{{ t.ui.tol_total_hint_html | safe }}</span>
         </div>
       </div>
       <div class="presets">
-        <span class="presets-label">Snelkeuze:</span>
-        <button type="button" class="preset" data-preset="strict">Strikt</button>
-        <button type="button" class="preset" data-preset="standard">Standaard</button>
-        <button type="button" class="preset" data-preset="relaxed">Soepel</button>
+        <span class="presets-label">{{ t.ui.presets_label }}</span>
+        <button type="button" class="preset" data-preset="strict">{{ t.ui.preset_strict }}</button>
+        <button type="button" class="preset" data-preset="standard">{{ t.ui.preset_standard }}</button>
+        <button type="button" class="preset" data-preset="relaxed">{{ t.ui.preset_relaxed }}</button>
       </div>
 
       <div class="actions">
-        <button class="primary" type="submit">Match uitvoeren</button>
+        <button class="primary" type="submit">{{ t.ui.submit_button }}</button>
         <span class="sample-links">
-          Voorbeeld nodig?
-          <a href="/sample/po_sample.csv" download>PO</a> ·
-          <a href="/sample/grn_sample.csv" download>GRN</a> ·
-          <a href="/sample/invoice_sample.csv" download>Factuur</a>
+          {{ t.ui.sample_prompt }}
+          <a href="/sample/po_sample.csv" download>{{ t.ui.sample_po }}</a> ·
+          <a href="/sample/grn_sample.csv" download>{{ t.ui.sample_grn }}</a> ·
+          <a href="/sample/invoice_sample.csv" download>{{ t.ui.sample_invoice }}</a>
         </span>
       </div>
     </form>
 
-    <div class="section-label">Ondersteunde formaten</div>
+    <div class="section-label">{{ t.ui.formats_section }}</div>
     <p style="color: var(--text-sec); font-size: 13px; margin: 0;">
-      CSV en JSON. Kolomnamen zijn flexibel — <code>quantity</code>/<code>qty</code>,
-      <code>unit_price</code>/<code>price</code>, <code>line_total</code>/<code>amount</code>
-      worden herkend. Bekijk <a href="/sample/po_sample.csv">de voorbeelden</a> voor de
-      exacte structuur.
+      {{ t.ui.formats_text_html | safe }}
     </p>
 
-    <footer class="bot">
-      SAAF · Three-way Match Audit · Werkt lokaal — geen bestanden verlaten je machine.
-    </footer>
+    <footer class="bot">{{ t.ui.footer_text }}</footer>
   </div>
 
   <script>

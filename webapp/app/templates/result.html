@@ -1,65 +1,68 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ t.lang_html_attr }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Match-resultaat — 3-way match</title>
+  <title>{{ t.ui.result_title }} — SAAF</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <div class="container">
     <header class="top">
-      <span>P2P AUDIT · 3-WAY MATCH · RESULTAAT</span>
-      <span>Intern gebruik</span>
+      <span>{{ t.ui.header_badge_result }}</span>
+      <div class="top-right">
+        {% include "_lang_switcher.html" %}
+        <span class="top-right-label">{{ t.ui.header_right }}</span>
+      </div>
     </header>
 
-    <h1>Match-resultaat</h1>
+    <h1>{{ t.ui.result_title }}</h1>
     <p class="subtitle">
-      Vergelijking van {{ filenames.po }} · {{ filenames.grn }} · {{ filenames.invoice }}
+      {{ t.ui.result_subtitle_prefix }} {{ filenames.po }} · {{ filenames.grn }} · {{ filenames.invoice }}
     </p>
 
     {% set r = report %}
 
     <div class="verdict-card {{ r.result }}">
-      <p class="verdict-label">Overall</p>
+      <p class="verdict-label">{{ t.ui.overall_label }}</p>
       <p class="verdict-value">
-        {% if r.result == "MATCH" %}Match — alles komt overeen
-        {% elif r.result == "WARNING" %}Waarschuwing — non-materiële verschillen
-        {% else %}Fail — materiële afwijking gedetecteerd{% endif %}
+        {% if r.result == "MATCH" %}{{ t.ui.verdict_match_text }}
+        {% elif r.result == "WARNING" %}{{ t.ui.verdict_warning_text }}
+        {% else %}{{ t.ui.verdict_fail_text }}{% endif %}
       </p>
     </div>
 
     <div class="summary-grid">
       <div class="summary-tile match">
         <div class="n">{{ r.summary.MATCH }}</div>
-        <div class="lbl">Match</div>
+        <div class="lbl">{{ t.ui.summary_match }}</div>
       </div>
       <div class="summary-tile warning">
         <div class="n">{{ r.summary.WARNING }}</div>
-        <div class="lbl">Warning</div>
+        <div class="lbl">{{ t.ui.summary_warning }}</div>
       </div>
       <div class="summary-tile fail">
         <div class="n">{{ r.summary.FAIL }}</div>
-        <div class="lbl">Fail</div>
+        <div class="lbl">{{ t.ui.summary_fail }}</div>
       </div>
       <div class="summary-tile total">
         <div class="n">€{{ "%.2f"|format(r.totals_discrepancy) }}</div>
-        <div class="lbl">Afwijking totaal</div>
+        <div class="lbl">{{ t.ui.summary_discrepancy }}</div>
       </div>
     </div>
 
     <div class="doc-meta">
-      {% for key, label in [("po", "Inkooporder"), ("grn", "Goederenontvangst"), ("inv", "Factuur")] %}
+      {% for key, label in [("po", t.ui.doc_po_short), ("grn", t.ui.doc_grn_short), ("inv", t.ui.doc_inv_short)] %}
         {% set d = r[key] %}
         <div class="doc">
           <h4>{{ label }}</h4>
           <dl>
-            <dt>Nummer</dt><dd>{{ d.document_number or "—" }}</dd>
-            <dt>PO-ref</dt><dd>{{ d.po_number or "—" }}</dd>
-            <dt>Leverancier</dt><dd>{{ d.supplier or "—" }}</dd>
-            <dt>Datum</dt><dd>{{ d.date or "—" }}</dd>
-            <dt>Regels</dt><dd>{{ d.line_count }}</dd>
-            <dt>Totaal</dt><dd>{% if d.total is not none %}€{{ "%.2f"|format(d.total) }}{% else %}—{% endif %}</dd>
+            <dt>{{ t.ui.doc_field_number }}</dt><dd>{{ d.document_number or "—" }}</dd>
+            <dt>{{ t.ui.doc_field_po_ref }}</dt><dd>{{ d.po_number or "—" }}</dd>
+            <dt>{{ t.ui.doc_field_supplier }}</dt><dd>{{ d.supplier or "—" }}</dd>
+            <dt>{{ t.ui.doc_field_date }}</dt><dd>{{ d.date or "—" }}</dd>
+            <dt>{{ t.ui.doc_field_lines }}</dt><dd>{{ d.line_count }}</dd>
+            <dt>{{ t.ui.doc_field_total }}</dt><dd>{% if d.total is not none %}€{{ "%.2f"|format(d.total) }}{% else %}—{% endif %}</dd>
           </dl>
         </div>
       {% endfor %}
@@ -67,27 +70,27 @@
 
     {% if r.header_issues %}
       <div class="header-issues">
-        <h4>Header-issues</h4>
+        <h4>{{ t.ui.header_issues_label }}</h4>
         <ul>
           {% for issue in r.header_issues %}<li>{{ issue }}</li>{% endfor %}
         </ul>
       </div>
     {% endif %}
 
-    <div class="section-label">Regelvergelijking</div>
+    <div class="section-label">{{ t.ui.lines_section }}</div>
     <table class="lines">
       <thead>
         <tr>
-          <th>Regel</th>
-          <th>SKU / Omschrijving</th>
-          <th class="num">PO qty</th>
-          <th class="num">GRN qty</th>
-          <th class="num">Fact. qty</th>
-          <th class="num">PO prijs</th>
-          <th class="num">Fact. prijs</th>
-          <th class="num">PO totaal</th>
-          <th class="num">Fact. totaal</th>
-          <th>Result</th>
+          <th>{{ t.ui.col_line }}</th>
+          <th>{{ t.ui.col_sku }}</th>
+          <th class="num">{{ t.ui.col_po_qty }}</th>
+          <th class="num">{{ t.ui.col_grn_qty }}</th>
+          <th class="num">{{ t.ui.col_inv_qty }}</th>
+          <th class="num">{{ t.ui.col_po_price }}</th>
+          <th class="num">{{ t.ui.col_inv_price }}</th>
+          <th class="num">{{ t.ui.col_po_total }}</th>
+          <th class="num">{{ t.ui.col_inv_total }}</th>
+          <th>{{ t.ui.col_result }}</th>
         </tr>
       </thead>
       <tbody>
@@ -117,11 +120,9 @@
       </tbody>
     </table>
 
-    <a href="/" class="back-link">← Nieuwe match uitvoeren</a>
+    <a href="/" class="back-link">{{ t.ui.back_link }}</a>
 
-    <footer class="bot">
-      SAAF · Three-way Match Audit · Werkt lokaal — geen bestanden verlaten je machine.
-    </footer>
+    <footer class="bot">{{ t.ui.footer_text }}</footer>
   </div>
 </body>
 </html>
