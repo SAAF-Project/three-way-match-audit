@@ -1,5 +1,7 @@
 # P2P 3-Way Match Audit
 
+**Live demo:** https://three-way-match-audit-iota.vercel.app/
+
 ## Purpose
 
 This project reconciles Procure-to-Pay (P2P) transactions across three source documents — **purchase order**, **goods receipt**, and **invoice** — to detect quantity and price discrepancies before payment. The 3-way match is a standard internal control over financial reporting (ICFR): it prevents over-payment, duplicate payment, and payment for goods or services never received. See [`AUDIT-CRITERIA.md`](./AUDIT-CRITERIA.md) for the control objectives this repo is judged against, and what's actually verified today.
