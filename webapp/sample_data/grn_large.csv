@@ -1,0 +1,527 @@
+field,value
+document_number,GRN-2025-4801
+po_number,PO-2025-1500
+supplier,Consortium Supply Partners BV
+date,2025-09-12
+
+line_number,sku,description,quantity
+1,OFFCE-001-0001,Balpen blauw 10-pak (Kantoorbenodigdheden),20
+2,OFFCE-002-0002,Marker permanent zwart (Kantoorbenodigdheden),100
+3,OFFCE-003-0003,Notitieblok A5 (Kantoorbenodigdheden),25
+4,OFFCE-004-0004,Plakband 19mm x 33m (Kantoorbenodigdheden),500
+5,OFFCE-005-0005,Ordner A4 80mm blauw (Kantoorbenodigdheden),200
+6,OFFCE-006-0006,Paperclips 50-pak (Kantoorbenodigdheden),20
+7,OFFCE-007-0007,Envelop C4 50-pak (Kantoorbenodigdheden),500
+8,OFFCE-008-0008,Post-it 76x76mm 100vel (Kantoorbenodigdheden),500
+9,OFFCE-009-0009,Whiteboard marker set (Kantoorbenodigdheden),500
+10,OFFCE-010-0010,Correctievloeistof (Kantoorbenodigdheden),250
+11,OFFCE-011-0011,Perforator 30 vel (Kantoorbenodigdheden),10
+12,OFFCE-012-0012,Nieter 24/6 metaal (Kantoorbenodigdheden),25
+13,OFFCE-013-0013,Notitieboek hardcover (Kantoorbenodigdheden),150
+14,OFFCE-014-0014,Documentmap A4 10-pak (Kantoorbenodigdheden),50
+15,OFFCE-015-0015,Bureaublad onderlegger (Kantoorbenodigdheden),150
+16,OFFCE-001-0016,Balpen blauw 10-pak (Kantoorbenodigdheden),200
+17,OFFCE-002-0017,Marker permanent zwart (Kantoorbenodigdheden),150
+18,OFFCE-003-0018,Notitieblok A5 (Kantoorbenodigdheden),10
+19,OFFCE-004-0019,Plakband 19mm x 33m (Kantoorbenodigdheden),500
+20,OFFCE-005-0020,Ordner A4 80mm blauw (Kantoorbenodigdheden),200
+21,OFFCE-006-0021,Paperclips 50-pak (Kantoorbenodigdheden),100
+22,OFFCE-007-0022,Envelop C4 50-pak (Kantoorbenodigdheden),150
+23,OFFCE-008-0023,Post-it 76x76mm 100vel (Kantoorbenodigdheden),20
+24,OFFCE-009-0024,Whiteboard marker set (Kantoorbenodigdheden),50
+25,OFFCE-010-0025,Correctievloeistof (Kantoorbenodigdheden),20
+26,OFFCE-011-0026,Perforator 30 vel (Kantoorbenodigdheden),20
+27,OFFCE-012-0027,Nieter 24/6 metaal (Kantoorbenodigdheden),250
+28,OFFCE-013-0028,Notitieboek hardcover (Kantoorbenodigdheden),150
+29,OFFCE-014-0029,Documentmap A4 10-pak (Kantoorbenodigdheden),150
+30,OFFCE-015-0030,Bureaublad onderlegger (Kantoorbenodigdheden),100
+31,OFFCE-001-0031,Balpen blauw 10-pak (Kantoorbenodigdheden),20
+32,OFFCE-002-0032,Marker permanent zwart (Kantoorbenodigdheden),25
+33,OFFCE-003-0033,Notitieblok A5 (Kantoorbenodigdheden),50
+34,OFFCE-004-0034,Plakband 19mm x 33m (Kantoorbenodigdheden),200
+35,OFFCE-005-0035,Ordner A4 80mm blauw (Kantoorbenodigdheden),500
+36,OFFCE-006-0036,Paperclips 50-pak (Kantoorbenodigdheden),150
+37,OFFCE-007-0037,Envelop C4 50-pak (Kantoorbenodigdheden),10
+38,OFFCE-008-0038,Post-it 76x76mm 100vel (Kantoorbenodigdheden),10
+39,OFFCE-009-0039,Whiteboard marker set (Kantoorbenodigdheden),200
+40,OFFCE-010-0040,Correctievloeistof (Kantoorbenodigdheden),50
+41,OFFCE-011-0041,Perforator 30 vel (Kantoorbenodigdheden),150
+42,OFFCE-012-0042,Nieter 24/6 metaal (Kantoorbenodigdheden),250
+43,OFFCE-013-0043,Notitieboek hardcover (Kantoorbenodigdheden),250
+44,OFFCE-014-0044,Documentmap A4 10-pak (Kantoorbenodigdheden),25
+45,OFFCE-015-0045,Bureaublad onderlegger (Kantoorbenodigdheden),500
+46,OFFCE-001-0046,Balpen blauw 10-pak (Kantoorbenodigdheden),200
+47,OFFCE-002-0047,Marker permanent zwart (Kantoorbenodigdheden),200
+48,OFFCE-003-0048,Notitieblok A5 (Kantoorbenodigdheden),25
+49,OFFCE-004-0049,Plakband 19mm x 33m (Kantoorbenodigdheden),20
+50,OFFCE-005-0050,Ordner A4 80mm blauw (Kantoorbenodigdheden),20
+51,OFFCE-006-0051,Paperclips 50-pak (Kantoorbenodigdheden),25
+52,OFFCE-007-0052,Envelop C4 50-pak (Kantoorbenodigdheden),200
+53,OFFCE-008-0053,Post-it 76x76mm 100vel (Kantoorbenodigdheden),200
+54,OFFCE-009-0054,Whiteboard marker set (Kantoorbenodigdheden),250
+55,OFFCE-010-0055,Correctievloeistof (Kantoorbenodigdheden),500
+56,OFFCE-011-0056,Perforator 30 vel (Kantoorbenodigdheden),10
+57,OFFCE-012-0057,Nieter 24/6 metaal (Kantoorbenodigdheden),20
+58,OFFCE-013-0058,Notitieboek hardcover (Kantoorbenodigdheden),500
+59,OFFCE-014-0059,Documentmap A4 10-pak (Kantoorbenodigdheden),150
+60,OFFCE-015-0060,Bureaublad onderlegger (Kantoorbenodigdheden),200
+61,OFFCE-001-0061,Balpen blauw 10-pak (Kantoorbenodigdheden),10
+62,OFFCE-002-0062,Marker permanent zwart (Kantoorbenodigdheden),100
+63,OFFCE-003-0063,Notitieblok A5 (Kantoorbenodigdheden),25
+64,OFFCE-004-0064,Plakband 19mm x 33m (Kantoorbenodigdheden),20
+65,OFFCE-005-0065,Ordner A4 80mm blauw (Kantoorbenodigdheden),100
+66,OFFCE-006-0066,Paperclips 50-pak (Kantoorbenodigdheden),500
+67,OFFCE-007-0067,Envelop C4 50-pak (Kantoorbenodigdheden),25
+68,OFFCE-008-0068,Post-it 76x76mm 100vel (Kantoorbenodigdheden),25
+69,OFFCE-009-0069,Whiteboard marker set (Kantoorbenodigdheden),500
+70,OFFCE-010-0070,Correctievloeistof (Kantoorbenodigdheden),150
+71,OFFCE-011-0071,Perforator 30 vel (Kantoorbenodigdheden),20
+72,OFFCE-012-0072,Nieter 24/6 metaal (Kantoorbenodigdheden),100
+73,OFFCE-013-0073,Notitieboek hardcover (Kantoorbenodigdheden),50
+74,OFFCE-014-0074,Documentmap A4 10-pak (Kantoorbenodigdheden),20
+75,OFFCE-015-0075,Bureaublad onderlegger (Kantoorbenodigdheden),250
+76,OFFCE-001-0076,Balpen blauw 10-pak (Kantoorbenodigdheden),500
+77,OFFCE-002-0077,Marker permanent zwart (Kantoorbenodigdheden),25
+78,OFFCE-003-0078,Notitieblok A5 (Kantoorbenodigdheden),500
+79,OFFCE-004-0079,Plakband 19mm x 33m (Kantoorbenodigdheden),500
+80,OFFCE-005-0080,Ordner A4 80mm blauw (Kantoorbenodigdheden),200
+81,OFFCE-006-0081,Paperclips 50-pak (Kantoorbenodigdheden),500
+82,OFFCE-007-0082,Envelop C4 50-pak (Kantoorbenodigdheden),50
+83,OFFCE-008-0083,Post-it 76x76mm 100vel (Kantoorbenodigdheden),200
+84,OFFCE-009-0084,Whiteboard marker set (Kantoorbenodigdheden),150
+85,OFFCE-010-0085,Correctievloeistof (Kantoorbenodigdheden),500
+86,OFFCE-011-0086,Perforator 30 vel (Kantoorbenodigdheden),50
+87,OFFCE-012-0087,Nieter 24/6 metaal (Kantoorbenodigdheden),150
+88,ICTPE-001-0088,USB-C kabel 1m (IT-randapparatuur),500
+89,ICTPE-002-0089,HDMI kabel 2m (IT-randapparatuur),50
+90,ICTPE-003-0090,Ethernet kabel Cat6 5m (IT-randapparatuur),10
+91,ICTPE-004-0091,USB-hub 4-poorts (IT-randapparatuur),10
+92,ICTPE-005-0092,Laptop tas 15 inch (IT-randapparatuur),20
+93,ICTPE-006-0093,Muis draadloos (IT-randapparatuur),100
+94,ICTPE-007-0094,Toetsenbord USB NL (IT-randapparatuur),50
+95,ICTPE-008-0095,Monitor arm enkelvoudig (IT-randapparatuur),250
+96,ICTPE-009-0096,Webcam HD 1080p (IT-randapparatuur),250
+97,ICTPE-010-0097,Headset USB stereo (IT-randapparatuur),50
+98,ICTPE-011-0098,Docking station USB-C (IT-randapparatuur),200
+99,ICTPE-012-0099,Externe SSD 500GB (IT-randapparatuur),200
+100,ICTPE-013-0100,Schermreiniger 250ml (IT-randapparatuur),10
+101,ICTPE-014-0101,Privacy filter 15.6 inch (IT-randapparatuur),20
+102,ICTPE-015-0102,Muismat XL antislip (IT-randapparatuur),150
+103,ICTPE-001-0103,USB-C kabel 1m (IT-randapparatuur),20
+104,ICTPE-002-0104,HDMI kabel 2m (IT-randapparatuur),50
+105,ICTPE-003-0105,Ethernet kabel Cat6 5m (IT-randapparatuur),25
+106,ICTPE-004-0106,USB-hub 4-poorts (IT-randapparatuur),100
+107,ICTPE-005-0107,Laptop tas 15 inch (IT-randapparatuur),20
+108,ICTPE-006-0108,Muis draadloos (IT-randapparatuur),500
+109,ICTPE-007-0109,Toetsenbord USB NL (IT-randapparatuur),500
+110,ICTPE-008-0110,Monitor arm enkelvoudig (IT-randapparatuur),20
+111,ICTPE-009-0111,Webcam HD 1080p (IT-randapparatuur),50
+112,ICTPE-010-0112,Headset USB stereo (IT-randapparatuur),250
+113,ICTPE-011-0113,Docking station USB-C (IT-randapparatuur),200
+114,ICTPE-012-0114,Externe SSD 500GB (IT-randapparatuur),25
+115,ICTPE-013-0115,Schermreiniger 250ml (IT-randapparatuur),200
+116,ICTPE-014-0116,Privacy filter 15.6 inch (IT-randapparatuur),250
+117,ICTPE-015-0117,Muismat XL antislip (IT-randapparatuur),500
+118,ICTPE-001-0118,USB-C kabel 1m (IT-randapparatuur),250
+119,ICTPE-002-0119,HDMI kabel 2m (IT-randapparatuur),100
+120,ICTPE-003-0120,Ethernet kabel Cat6 5m (IT-randapparatuur),10
+121,ICTPE-004-0121,USB-hub 4-poorts (IT-randapparatuur),500
+122,ICTPE-005-0122,Laptop tas 15 inch (IT-randapparatuur),150
+123,ICTPE-006-0123,Muis draadloos (IT-randapparatuur),250
+124,ICTPE-007-0124,Toetsenbord USB NL (IT-randapparatuur),500
+125,ICTPE-008-0125,Monitor arm enkelvoudig (IT-randapparatuur),500
+126,ICTPE-009-0126,Webcam HD 1080p (IT-randapparatuur),25
+127,ICTPE-010-0127,Headset USB stereo (IT-randapparatuur),20
+128,ICTPE-011-0128,Docking station USB-C (IT-randapparatuur),50
+129,ICTPE-012-0129,Externe SSD 500GB (IT-randapparatuur),50
+130,ICTPE-013-0130,Schermreiniger 250ml (IT-randapparatuur),10
+131,ICTPE-014-0131,Privacy filter 15.6 inch (IT-randapparatuur),200
+132,ICTPE-015-0132,Muismat XL antislip (IT-randapparatuur),500
+133,ICTPE-001-0133,USB-C kabel 1m (IT-randapparatuur),100
+134,ICTPE-002-0134,HDMI kabel 2m (IT-randapparatuur),150
+135,ICTPE-003-0135,Ethernet kabel Cat6 5m (IT-randapparatuur),200
+136,ICTPE-004-0136,USB-hub 4-poorts (IT-randapparatuur),100
+137,ICTPE-005-0137,Laptop tas 15 inch (IT-randapparatuur),20
+138,ICTPE-006-0138,Muis draadloos (IT-randapparatuur),20
+139,ICTPE-007-0139,Toetsenbord USB NL (IT-randapparatuur),50
+140,ICTPE-008-0140,Monitor arm enkelvoudig (IT-randapparatuur),25
+141,ICTPE-009-0141,Webcam HD 1080p (IT-randapparatuur),20
+142,ICTPE-010-0142,Headset USB stereo (IT-randapparatuur),150
+143,ICTPE-011-0143,Docking station USB-C (IT-randapparatuur),250
+144,ICTPE-012-0144,Externe SSD 500GB (IT-randapparatuur),100
+145,ICTPE-013-0145,Schermreiniger 250ml (IT-randapparatuur),500
+146,ICTPE-014-0146,Privacy filter 15.6 inch (IT-randapparatuur),500
+147,ICTPE-015-0147,Muismat XL antislip (IT-randapparatuur),20
+148,ICTPE-001-0148,USB-C kabel 1m (IT-randapparatuur),25
+149,ICTPE-002-0149,HDMI kabel 2m (IT-randapparatuur),20
+150,ICTPE-003-0150,Ethernet kabel Cat6 5m (IT-randapparatuur),25
+151,ICTPE-004-0151,USB-hub 4-poorts (IT-randapparatuur),50
+152,ICTPE-005-0152,Laptop tas 15 inch (IT-randapparatuur),50
+153,ICTPE-006-0153,Muis draadloos (IT-randapparatuur),100
+154,ICTPE-007-0154,Toetsenbord USB NL (IT-randapparatuur),100
+155,ICTPE-008-0155,Monitor arm enkelvoudig (IT-randapparatuur),10
+156,ICTPE-009-0156,Webcam HD 1080p (IT-randapparatuur),200
+157,ICTPE-010-0157,Headset USB stereo (IT-randapparatuur),10
+158,ICTPE-011-0158,Docking station USB-C (IT-randapparatuur),25
+159,ICTPE-012-0159,Externe SSD 500GB (IT-randapparatuur),100
+160,ICTPE-013-0160,Schermreiniger 250ml (IT-randapparatuur),250
+161,ICTPE-014-0161,Privacy filter 15.6 inch (IT-randapparatuur),200
+162,ICTPE-015-0162,Muismat XL antislip (IT-randapparatuur),20
+163,ICTPE-001-0163,USB-C kabel 1m (IT-randapparatuur),25
+164,ICTPE-002-0164,HDMI kabel 2m (IT-randapparatuur),150
+165,ICTPE-003-0165,Ethernet kabel Cat6 5m (IT-randapparatuur),25
+166,ICTPE-004-0166,USB-hub 4-poorts (IT-randapparatuur),10
+167,ICTPE-005-0167,Laptop tas 15 inch (IT-randapparatuur),10
+168,ICTPE-006-0168,Muis draadloos (IT-randapparatuur),50
+169,ICTPE-007-0169,Toetsenbord USB NL (IT-randapparatuur),20
+170,ICTPE-008-0170,Monitor arm enkelvoudig (IT-randapparatuur),500
+171,ICTPE-009-0171,Webcam HD 1080p (IT-randapparatuur),200
+172,ICTPE-010-0172,Headset USB stereo (IT-randapparatuur),25
+173,ICTPE-011-0173,Docking station USB-C (IT-randapparatuur),50
+174,ICTPE-012-0174,Externe SSD 500GB (IT-randapparatuur),25
+175,INDST-001-0175,Bouten M6x20 100-pak (Industriële onderdelen),10
+176,INDST-002-0176,Moeren M6 100-pak (Industriële onderdelen),150
+177,INDST-003-0177,Sluitring M6 200-pak (Industriële onderdelen),200
+178,INDST-004-0178,Draadpin M8x50 (Industriële onderdelen),50
+179,INDST-005-0179,Borgmoer M8 50-pak (Industriële onderdelen),20
+180,INDST-006-0180,Zeskantbout M10x30 (Industriële onderdelen),10
+181,INDST-007-0181,Schroef Ph 4x40 100-pak (Industriële onderdelen),50
+182,INDST-008-0182,O-ring 20x2 10-pak (Industriële onderdelen),250
+183,INDST-009-0183,Afdichtingsring rubber (Industriële onderdelen),50
+184,INDST-010-0184,Stelschroef M6x10 50-pak (Industriële onderdelen),50
+185,INDST-011-0185,Kabelbinder 200mm 100-pak (Industriële onderdelen),100
+186,INDST-012-0186,Kabelklem metaal 25mm (Industriële onderdelen),100
+187,INDST-013-0187,Veerring 6mm 100-pak (Industriële onderdelen),500
+188,INDST-014-0188,Keerring 8mm 50-pak (Industriële onderdelen),500
+189,INDST-015-0189,Passchijf M6 100-pak (Industriële onderdelen),10
+190,INDST-001-0190,Bouten M6x20 100-pak (Industriële onderdelen),100
+191,INDST-002-0191,Moeren M6 100-pak (Industriële onderdelen),100
+192,INDST-003-0192,Sluitring M6 200-pak (Industriële onderdelen),200
+193,INDST-004-0193,Draadpin M8x50 (Industriële onderdelen),150
+194,INDST-005-0194,Borgmoer M8 50-pak (Industriële onderdelen),500
+195,INDST-006-0195,Zeskantbout M10x30 (Industriële onderdelen),50
+196,INDST-007-0196,Schroef Ph 4x40 100-pak (Industriële onderdelen),200
+197,INDST-008-0197,O-ring 20x2 10-pak (Industriële onderdelen),500
+198,INDST-009-0198,Afdichtingsring rubber (Industriële onderdelen),50
+199,INDST-010-0199,Stelschroef M6x10 50-pak (Industriële onderdelen),20
+200,INDST-011-0200,Kabelbinder 200mm 100-pak (Industriële onderdelen),150
+201,INDST-012-0201,Kabelklem metaal 25mm (Industriële onderdelen),20
+202,INDST-013-0202,Veerring 6mm 100-pak (Industriële onderdelen),100
+203,INDST-014-0203,Keerring 8mm 50-pak (Industriële onderdelen),200
+204,INDST-015-0204,Passchijf M6 100-pak (Industriële onderdelen),100
+205,INDST-001-0205,Bouten M6x20 100-pak (Industriële onderdelen),50
+206,INDST-002-0206,Moeren M6 100-pak (Industriële onderdelen),200
+207,INDST-003-0207,Sluitring M6 200-pak (Industriële onderdelen),25
+208,INDST-004-0208,Draadpin M8x50 (Industriële onderdelen),100
+209,INDST-005-0209,Borgmoer M8 50-pak (Industriële onderdelen),10
+210,INDST-006-0210,Zeskantbout M10x30 (Industriële onderdelen),50
+211,INDST-007-0211,Schroef Ph 4x40 100-pak (Industriële onderdelen),150
+212,INDST-008-0212,O-ring 20x2 10-pak (Industriële onderdelen),250
+213,INDST-009-0213,Afdichtingsring rubber (Industriële onderdelen),500
+214,INDST-010-0214,Stelschroef M6x10 50-pak (Industriële onderdelen),25
+215,INDST-011-0215,Kabelbinder 200mm 100-pak (Industriële onderdelen),100
+216,INDST-012-0216,Kabelklem metaal 25mm (Industriële onderdelen),150
+217,INDST-013-0217,Veerring 6mm 100-pak (Industriële onderdelen),50
+218,INDST-014-0218,Keerring 8mm 50-pak (Industriële onderdelen),50
+219,INDST-015-0219,Passchijf M6 100-pak (Industriële onderdelen),25
+220,INDST-001-0220,Bouten M6x20 100-pak (Industriële onderdelen),50
+221,INDST-002-0221,Moeren M6 100-pak (Industriële onderdelen),20
+222,INDST-003-0222,Sluitring M6 200-pak (Industriële onderdelen),50
+223,INDST-004-0223,Draadpin M8x50 (Industriële onderdelen),200
+224,INDST-005-0224,Borgmoer M8 50-pak (Industriële onderdelen),50
+225,INDST-006-0225,Zeskantbout M10x30 (Industriële onderdelen),10
+226,INDST-007-0226,Schroef Ph 4x40 100-pak (Industriële onderdelen),20
+227,INDST-008-0227,O-ring 20x2 10-pak (Industriële onderdelen),50
+228,INDST-009-0228,Afdichtingsring rubber (Industriële onderdelen),500
+229,INDST-010-0229,Stelschroef M6x10 50-pak (Industriële onderdelen),500
+230,INDST-011-0230,Kabelbinder 200mm 100-pak (Industriële onderdelen),20
+231,INDST-012-0231,Kabelklem metaal 25mm (Industriële onderdelen),250
+232,INDST-013-0232,Veerring 6mm 100-pak (Industriële onderdelen),500
+233,INDST-014-0233,Keerring 8mm 50-pak (Industriële onderdelen),250
+234,INDST-015-0234,Passchijf M6 100-pak (Industriële onderdelen),500
+235,INDST-001-0235,Bouten M6x20 100-pak (Industriële onderdelen),500
+236,INDST-002-0236,Moeren M6 100-pak (Industriële onderdelen),25
+237,INDST-003-0237,Sluitring M6 200-pak (Industriële onderdelen),250
+238,INDST-004-0238,Draadpin M8x50 (Industriële onderdelen),50
+239,INDST-005-0239,Borgmoer M8 50-pak (Industriële onderdelen),100
+240,INDST-006-0240,Zeskantbout M10x30 (Industriële onderdelen),500
+241,INDST-007-0241,Schroef Ph 4x40 100-pak (Industriële onderdelen),50
+242,INDST-008-0242,O-ring 20x2 10-pak (Industriële onderdelen),20
+243,INDST-009-0243,Afdichtingsring rubber (Industriële onderdelen),50
+244,INDST-010-0244,Stelschroef M6x10 50-pak (Industriële onderdelen),150
+245,INDST-011-0245,Kabelbinder 200mm 100-pak (Industriële onderdelen),20
+246,INDST-012-0246,Kabelklem metaal 25mm (Industriële onderdelen),50
+247,INDST-013-0247,Veerring 6mm 100-pak (Industriële onderdelen),25
+248,INDST-014-0248,Keerring 8mm 50-pak (Industriële onderdelen),20
+249,INDST-015-0249,Passchijf M6 100-pak (Industriële onderdelen),150
+250,INDST-001-0250,Bouten M6x20 100-pak (Industriële onderdelen),200
+251,INDST-002-0251,Moeren M6 100-pak (Industriële onderdelen),200
+252,INDST-003-0252,Sluitring M6 200-pak (Industriële onderdelen),10
+253,INDST-004-0253,Draadpin M8x50 (Industriële onderdelen),200
+254,INDST-005-0254,Borgmoer M8 50-pak (Industriële onderdelen),150
+255,INDST-006-0255,Zeskantbout M10x30 (Industriële onderdelen),200
+256,INDST-007-0256,Schroef Ph 4x40 100-pak (Industriële onderdelen),200
+257,INDST-008-0257,O-ring 20x2 10-pak (Industriële onderdelen),500
+258,INDST-009-0258,Afdichtingsring rubber (Industriële onderdelen),50
+259,INDST-010-0259,Stelschroef M6x10 50-pak (Industriële onderdelen),100
+260,INDST-011-0260,Kabelbinder 200mm 100-pak (Industriële onderdelen),10
+261,INDST-012-0261,Kabelklem metaal 25mm (Industriële onderdelen),200
+262,CLEAN-001-0262,Allesreiniger 5L (Schoonmaakmiddelen),250
+263,CLEAN-002-0263,Vloerglansproduct 5L (Schoonmaakmiddelen),500
+264,CLEAN-003-0264,Glasreiniger spray 750ml (Schoonmaakmiddelen),200
+265,CLEAN-004-0265,Desinfectiemiddel 1L (Schoonmaakmiddelen),10
+266,CLEAN-005-0266,Toiletpapier 2-laags 48 rol (Schoonmaakmiddelen),200
+267,CLEAN-006-0267,Keukenpapier 6 rol (Schoonmaakmiddelen),250
+268,CLEAN-007-0268,Vuilniszak 120L 10-pak (Schoonmaakmiddelen),100
+269,CLEAN-008-0269,Handzeep navulling 1L (Schoonmaakmiddelen),50
+270,CLEAN-009-0270,Microvezeldoek 10-pak (Schoonmaakmiddelen),150
+271,CLEAN-010-0271,Schuurspons 10-pak (Schoonmaakmiddelen),200
+272,CLEAN-011-0272,Mopkop vervanging (Schoonmaakmiddelen),200
+273,CLEAN-012-0273,Bezem met steel (Schoonmaakmiddelen),20
+274,CLEAN-013-0274,Stoffer en blik set (Schoonmaakmiddelen),500
+275,CLEAN-014-0275,Wasmiddel vloeibaar 5L (Schoonmaakmiddelen),150
+276,CLEAN-015-0276,Luchtverfrissher spray (Schoonmaakmiddelen),20
+277,CLEAN-001-0277,Allesreiniger 5L (Schoonmaakmiddelen),10
+278,CLEAN-002-0278,Vloerglansproduct 5L (Schoonmaakmiddelen),50
+279,CLEAN-003-0279,Glasreiniger spray 750ml (Schoonmaakmiddelen),10
+280,CLEAN-004-0280,Desinfectiemiddel 1L (Schoonmaakmiddelen),50
+281,CLEAN-005-0281,Toiletpapier 2-laags 48 rol (Schoonmaakmiddelen),20
+282,CLEAN-006-0282,Keukenpapier 6 rol (Schoonmaakmiddelen),50
+283,CLEAN-007-0283,Vuilniszak 120L 10-pak (Schoonmaakmiddelen),100
+284,CLEAN-008-0284,Handzeep navulling 1L (Schoonmaakmiddelen),25
+285,CLEAN-009-0285,Microvezeldoek 10-pak (Schoonmaakmiddelen),20
+286,CLEAN-010-0286,Schuurspons 10-pak (Schoonmaakmiddelen),25
+287,CLEAN-011-0287,Mopkop vervanging (Schoonmaakmiddelen),20
+288,CLEAN-012-0288,Bezem met steel (Schoonmaakmiddelen),100
+289,CLEAN-013-0289,Stoffer en blik set (Schoonmaakmiddelen),200
+290,CLEAN-014-0290,Wasmiddel vloeibaar 5L (Schoonmaakmiddelen),50
+291,CLEAN-015-0291,Luchtverfrissher spray (Schoonmaakmiddelen),50
+292,CLEAN-001-0292,Allesreiniger 5L (Schoonmaakmiddelen),100
+293,CLEAN-002-0293,Vloerglansproduct 5L (Schoonmaakmiddelen),20
+294,CLEAN-003-0294,Glasreiniger spray 750ml (Schoonmaakmiddelen),10
+295,CLEAN-004-0295,Desinfectiemiddel 1L (Schoonmaakmiddelen),200
+296,CLEAN-005-0296,Toiletpapier 2-laags 48 rol (Schoonmaakmiddelen),20
+297,CLEAN-006-0297,Keukenpapier 6 rol (Schoonmaakmiddelen),150
+298,CLEAN-007-0298,Vuilniszak 120L 10-pak (Schoonmaakmiddelen),200
+299,CLEAN-008-0299,Handzeep navulling 1L (Schoonmaakmiddelen),20
+300,CLEAN-009-0300,Microvezeldoek 10-pak (Schoonmaakmiddelen),150
+301,CLEAN-010-0301,Schuurspons 10-pak (Schoonmaakmiddelen),250
+302,CLEAN-011-0302,Mopkop vervanging (Schoonmaakmiddelen),200
+303,CLEAN-012-0303,Bezem met steel (Schoonmaakmiddelen),500
+304,CLEAN-013-0304,Stoffer en blik set (Schoonmaakmiddelen),100
+305,CLEAN-014-0305,Wasmiddel vloeibaar 5L (Schoonmaakmiddelen),500
+306,CLEAN-015-0306,Luchtverfrissher spray (Schoonmaakmiddelen),250
+307,CLEAN-001-0307,Allesreiniger 5L (Schoonmaakmiddelen),100
+308,CLEAN-002-0308,Vloerglansproduct 5L (Schoonmaakmiddelen),50
+309,CLEAN-003-0309,Glasreiniger spray 750ml (Schoonmaakmiddelen),20
+310,CLEAN-004-0310,Desinfectiemiddel 1L (Schoonmaakmiddelen),250
+311,CLEAN-005-0311,Toiletpapier 2-laags 48 rol (Schoonmaakmiddelen),250
+312,CLEAN-006-0312,Keukenpapier 6 rol (Schoonmaakmiddelen),200
+313,CLEAN-007-0313,Vuilniszak 120L 10-pak (Schoonmaakmiddelen),250
+314,CLEAN-008-0314,Handzeep navulling 1L (Schoonmaakmiddelen),25
+315,CLEAN-009-0315,Microvezeldoek 10-pak (Schoonmaakmiddelen),150
+316,CLEAN-010-0316,Schuurspons 10-pak (Schoonmaakmiddelen),150
+317,CLEAN-011-0317,Mopkop vervanging (Schoonmaakmiddelen),100
+318,CLEAN-012-0318,Bezem met steel (Schoonmaakmiddelen),500
+319,CLEAN-013-0319,Stoffer en blik set (Schoonmaakmiddelen),20
+320,CLEAN-014-0320,Wasmiddel vloeibaar 5L (Schoonmaakmiddelen),200
+321,CLEAN-015-0321,Luchtverfrissher spray (Schoonmaakmiddelen),50
+322,CLEAN-001-0322,Allesreiniger 5L (Schoonmaakmiddelen),250
+323,CLEAN-002-0323,Vloerglansproduct 5L (Schoonmaakmiddelen),10
+324,CLEAN-003-0324,Glasreiniger spray 750ml (Schoonmaakmiddelen),50
+325,CLEAN-004-0325,Desinfectiemiddel 1L (Schoonmaakmiddelen),50
+326,CLEAN-005-0326,Toiletpapier 2-laags 48 rol (Schoonmaakmiddelen),150
+327,CLEAN-006-0327,Keukenpapier 6 rol (Schoonmaakmiddelen),500
+328,CLEAN-007-0328,Vuilniszak 120L 10-pak (Schoonmaakmiddelen),500
+329,CLEAN-008-0329,Handzeep navulling 1L (Schoonmaakmiddelen),250
+330,CLEAN-009-0330,Microvezeldoek 10-pak (Schoonmaakmiddelen),100
+331,CLEAN-010-0331,Schuurspons 10-pak (Schoonmaakmiddelen),50
+332,CLEAN-011-0332,Mopkop vervanging (Schoonmaakmiddelen),500
+333,CLEAN-012-0333,Bezem met steel (Schoonmaakmiddelen),25
+334,CLEAN-013-0334,Stoffer en blik set (Schoonmaakmiddelen),250
+335,CLEAN-014-0335,Wasmiddel vloeibaar 5L (Schoonmaakmiddelen),500
+336,CLEAN-015-0336,Luchtverfrissher spray (Schoonmaakmiddelen),20
+337,CLEAN-001-0337,Allesreiniger 5L (Schoonmaakmiddelen),100
+338,CLEAN-002-0338,Vloerglansproduct 5L (Schoonmaakmiddelen),25
+339,CLEAN-003-0339,Glasreiniger spray 750ml (Schoonmaakmiddelen),500
+340,CLEAN-004-0340,Desinfectiemiddel 1L (Schoonmaakmiddelen),10
+341,CLEAN-005-0341,Toiletpapier 2-laags 48 rol (Schoonmaakmiddelen),500
+342,CLEAN-006-0342,Keukenpapier 6 rol (Schoonmaakmiddelen),25
+343,CLEAN-007-0343,Vuilniszak 120L 10-pak (Schoonmaakmiddelen),250
+344,CLEAN-008-0344,Handzeep navulling 1L (Schoonmaakmiddelen),10
+345,CLEAN-009-0345,Microvezeldoek 10-pak (Schoonmaakmiddelen),250
+346,CLEAN-010-0346,Schuurspons 10-pak (Schoonmaakmiddelen),150
+347,CLEAN-011-0347,Mopkop vervanging (Schoonmaakmiddelen),10
+348,CLEAN-012-0348,Bezem met steel (Schoonmaakmiddelen),250
+349,SAFTY-001-0349,Veiligheidshelm klasse 1 (Veiligheidsuitrusting),20
+350,SAFTY-002-0350,Veiligheidsschoenen S3 (Veiligheidsuitrusting),20
+351,SAFTY-003-0351,Werkhandschoenen XL (Veiligheidsuitrusting),10
+352,SAFTY-004-0352,Veiligheidsbril helder (Veiligheidsuitrusting),100
+353,SAFTY-005-0353,Gehoorbescherming 5-pak (Veiligheidsuitrusting),50
+354,SAFTY-006-0354,Stofmasker FFP2 10-pak (Veiligheidsuitrusting),200
+355,SAFTY-007-0355,Veiligheidshesje geel (Veiligheidsuitrusting),50
+356,SAFTY-008-0356,Kniebeschermers hard (Veiligheidsuitrusting),200
+357,SAFTY-009-0357,Eerste hulp koffer C (Veiligheidsuitrusting),250
+358,SAFTY-010-0358,Brandblusser 6kg ABC (Veiligheidsuitrusting),200
+359,SAFTY-011-0359,AED wandhouder (Veiligheidsuitrusting),10
+360,SAFTY-012-0360,Vluchtroutebord verlicht (Veiligheidsuitrusting),20
+361,SAFTY-013-0361,Verbandtrommel auto (Veiligheidsuitrusting),50
+362,SAFTY-014-0362,Nooduitgang sticker set (Veiligheidsuitrusting),100
+363,SAFTY-015-0363,Veiligheidsnet 2x3m (Veiligheidsuitrusting),25
+364,SAFTY-001-0364,Veiligheidshelm klasse 1 (Veiligheidsuitrusting),500
+365,SAFTY-002-0365,Veiligheidsschoenen S3 (Veiligheidsuitrusting),10
+366,SAFTY-003-0366,Werkhandschoenen XL (Veiligheidsuitrusting),250
+367,SAFTY-004-0367,Veiligheidsbril helder (Veiligheidsuitrusting),50
+368,SAFTY-005-0368,Gehoorbescherming 5-pak (Veiligheidsuitrusting),100
+369,SAFTY-006-0369,Stofmasker FFP2 10-pak (Veiligheidsuitrusting),250
+370,SAFTY-007-0370,Veiligheidshesje geel (Veiligheidsuitrusting),50
+371,SAFTY-008-0371,Kniebeschermers hard (Veiligheidsuitrusting),50
+372,SAFTY-009-0372,Eerste hulp koffer C (Veiligheidsuitrusting),500
+373,SAFTY-010-0373,Brandblusser 6kg ABC (Veiligheidsuitrusting),25
+374,SAFTY-011-0374,AED wandhouder (Veiligheidsuitrusting),25
+375,SAFTY-012-0375,Vluchtroutebord verlicht (Veiligheidsuitrusting),25
+376,SAFTY-013-0376,Verbandtrommel auto (Veiligheidsuitrusting),100
+377,SAFTY-014-0377,Nooduitgang sticker set (Veiligheidsuitrusting),250
+378,SAFTY-015-0378,Veiligheidsnet 2x3m (Veiligheidsuitrusting),200
+379,SAFTY-001-0379,Veiligheidshelm klasse 1 (Veiligheidsuitrusting),500
+380,SAFTY-002-0380,Veiligheidsschoenen S3 (Veiligheidsuitrusting),250
+381,SAFTY-003-0381,Werkhandschoenen XL (Veiligheidsuitrusting),10
+382,SAFTY-004-0382,Veiligheidsbril helder (Veiligheidsuitrusting),150
+383,SAFTY-005-0383,Gehoorbescherming 5-pak (Veiligheidsuitrusting),10
+384,SAFTY-006-0384,Stofmasker FFP2 10-pak (Veiligheidsuitrusting),10
+385,SAFTY-007-0385,Veiligheidshesje geel (Veiligheidsuitrusting),100
+386,SAFTY-008-0386,Kniebeschermers hard (Veiligheidsuitrusting),25
+387,SAFTY-009-0387,Eerste hulp koffer C (Veiligheidsuitrusting),250
+388,SAFTY-010-0388,Brandblusser 6kg ABC (Veiligheidsuitrusting),25
+389,SAFTY-011-0389,AED wandhouder (Veiligheidsuitrusting),200
+390,SAFTY-012-0390,Vluchtroutebord verlicht (Veiligheidsuitrusting),250
+391,SAFTY-013-0391,Verbandtrommel auto (Veiligheidsuitrusting),250
+392,SAFTY-014-0392,Nooduitgang sticker set (Veiligheidsuitrusting),150
+393,SAFTY-015-0393,Veiligheidsnet 2x3m (Veiligheidsuitrusting),20
+394,SAFTY-001-0394,Veiligheidshelm klasse 1 (Veiligheidsuitrusting),150
+395,SAFTY-002-0395,Veiligheidsschoenen S3 (Veiligheidsuitrusting),250
+396,SAFTY-003-0396,Werkhandschoenen XL (Veiligheidsuitrusting),200
+397,SAFTY-004-0397,Veiligheidsbril helder (Veiligheidsuitrusting),500
+398,SAFTY-005-0398,Gehoorbescherming 5-pak (Veiligheidsuitrusting),20
+399,SAFTY-006-0399,Stofmasker FFP2 10-pak (Veiligheidsuitrusting),150
+400,SAFTY-007-0400,Veiligheidshesje geel (Veiligheidsuitrusting),200
+401,SAFTY-008-0401,Kniebeschermers hard (Veiligheidsuitrusting),10
+402,SAFTY-009-0402,Eerste hulp koffer C (Veiligheidsuitrusting),500
+403,SAFTY-010-0403,Brandblusser 6kg ABC (Veiligheidsuitrusting),10
+404,SAFTY-011-0404,AED wandhouder (Veiligheidsuitrusting),150
+405,SAFTY-012-0405,Vluchtroutebord verlicht (Veiligheidsuitrusting),250
+406,SAFTY-013-0406,Verbandtrommel auto (Veiligheidsuitrusting),10
+407,SAFTY-014-0407,Nooduitgang sticker set (Veiligheidsuitrusting),500
+408,SAFTY-015-0408,Veiligheidsnet 2x3m (Veiligheidsuitrusting),100
+409,SAFTY-001-0409,Veiligheidshelm klasse 1 (Veiligheidsuitrusting),250
+410,SAFTY-002-0410,Veiligheidsschoenen S3 (Veiligheidsuitrusting),50
+411,SAFTY-003-0411,Werkhandschoenen XL (Veiligheidsuitrusting),100
+412,SAFTY-004-0412,Veiligheidsbril helder (Veiligheidsuitrusting),500
+413,SAFTY-005-0413,Gehoorbescherming 5-pak (Veiligheidsuitrusting),50
+414,SAFTY-006-0414,Stofmasker FFP2 10-pak (Veiligheidsuitrusting),20
+415,SAFTY-007-0415,Veiligheidshesje geel (Veiligheidsuitrusting),20
+416,SAFTY-008-0416,Kniebeschermers hard (Veiligheidsuitrusting),25
+417,SAFTY-009-0417,Eerste hulp koffer C (Veiligheidsuitrusting),100
+418,SAFTY-010-0418,Brandblusser 6kg ABC (Veiligheidsuitrusting),100
+419,SAFTY-011-0419,AED wandhouder (Veiligheidsuitrusting),250
+420,SAFTY-012-0420,Vluchtroutebord verlicht (Veiligheidsuitrusting),50
+421,SAFTY-013-0421,Verbandtrommel auto (Veiligheidsuitrusting),25
+422,SAFTY-014-0422,Nooduitgang sticker set (Veiligheidsuitrusting),500
+423,SAFTY-015-0423,Veiligheidsnet 2x3m (Veiligheidsuitrusting),25
+424,SAFTY-001-0424,Veiligheidshelm klasse 1 (Veiligheidsuitrusting),100
+425,SAFTY-002-0425,Veiligheidsschoenen S3 (Veiligheidsuitrusting),200
+426,SAFTY-003-0426,Werkhandschoenen XL (Veiligheidsuitrusting),500
+427,SAFTY-004-0427,Veiligheidsbril helder (Veiligheidsuitrusting),10
+428,SAFTY-005-0428,Gehoorbescherming 5-pak (Veiligheidsuitrusting),100
+429,SAFTY-006-0429,Stofmasker FFP2 10-pak (Veiligheidsuitrusting),250
+430,SAFTY-007-0430,Veiligheidshesje geel (Veiligheidsuitrusting),250
+431,SAFTY-008-0431,Kniebeschermers hard (Veiligheidsuitrusting),150
+432,SAFTY-009-0432,Eerste hulp koffer C (Veiligheidsuitrusting),500
+433,SAFTY-010-0433,Brandblusser 6kg ABC (Veiligheidsuitrusting),150
+434,SAFTY-011-0434,AED wandhouder (Veiligheidsuitrusting),50
+435,SAFTY-012-0435,Vluchtroutebord verlicht (Veiligheidsuitrusting),50
+436,PACKM-001-0436,Kartonnen doos 400x300x300 (Verpakkingsmateriaal),200
+437,PACKM-002-0437,Luchtkussens 100-pak (Verpakkingsmateriaal),250
+438,PACKM-003-0438,Krimpfolie 50cm x 200m (Verpakkingsmateriaal),200
+439,PACKM-004-0439,Tape bruin 48mm 6-pak (Verpakkingsmateriaal),25
+440,PACKM-005-0440,Bubbeltjesfolie 100cm x10m (Verpakkingsmateriaal),10
+441,PACKM-006-0441,Opvulmateriaal papier 5kg (Verpakkingsmateriaal),150
+442,PACKM-007-0442,Palletwikkelfolie 500mm (Verpakkingsmateriaal),250
+443,PACKM-008-0443,Etiket blanco 70x36 300st (Verpakkingsmateriaal),250
+444,PACKM-009-0444,Verzenddoos 600x400x400 (Verpakkingsmateriaal),25
+445,PACKM-010-0445,Stansmes dispensertape (Verpakkingsmateriaal),25
+446,PACKM-011-0446,Zipsluitzak A4 100-pak (Verpakkingsmateriaal),100
+447,PACKM-012-0447,Hoekbeschermer 50-pak (Verpakkingsmateriaal),200
+448,PACKM-013-0448,Schuimfolie 100cm x 25m (Verpakkingsmateriaal),150
+449,PACKM-014-0449,Vacuumzak 60x80cm 10-pak (Verpakkingsmateriaal),500
+450,PACKM-015-0450,Documenthouder voor doos (Verpakkingsmateriaal),150
+451,PACKM-001-0451,Kartonnen doos 400x300x300 (Verpakkingsmateriaal),250
+452,PACKM-002-0452,Luchtkussens 100-pak (Verpakkingsmateriaal),10
+453,PACKM-003-0453,Krimpfolie 50cm x 200m (Verpakkingsmateriaal),50
+454,PACKM-004-0454,Tape bruin 48mm 6-pak (Verpakkingsmateriaal),100
+455,PACKM-005-0455,Bubbeltjesfolie 100cm x10m (Verpakkingsmateriaal),20
+456,PACKM-006-0456,Opvulmateriaal papier 5kg (Verpakkingsmateriaal),20
+457,PACKM-007-0457,Palletwikkelfolie 500mm (Verpakkingsmateriaal),20
+458,PACKM-008-0458,Etiket blanco 70x36 300st (Verpakkingsmateriaal),100
+459,PACKM-009-0459,Verzenddoos 600x400x400 (Verpakkingsmateriaal),10
+460,PACKM-010-0460,Stansmes dispensertape (Verpakkingsmateriaal),10
+461,PACKM-011-0461,Zipsluitzak A4 100-pak (Verpakkingsmateriaal),150
+462,PACKM-012-0462,Hoekbeschermer 50-pak (Verpakkingsmateriaal),50
+463,PACKM-013-0463,Schuimfolie 100cm x 25m (Verpakkingsmateriaal),25
+464,PACKM-014-0464,Vacuumzak 60x80cm 10-pak (Verpakkingsmateriaal),20
+465,PACKM-015-0465,Documenthouder voor doos (Verpakkingsmateriaal),200
+466,PACKM-001-0466,Kartonnen doos 400x300x300 (Verpakkingsmateriaal),50
+467,PACKM-002-0467,Luchtkussens 100-pak (Verpakkingsmateriaal),25
+468,PACKM-003-0468,Krimpfolie 50cm x 200m (Verpakkingsmateriaal),100
+469,PACKM-004-0469,Tape bruin 48mm 6-pak (Verpakkingsmateriaal),10
+470,PACKM-005-0470,Bubbeltjesfolie 100cm x10m (Verpakkingsmateriaal),250
+471,PACKM-006-0471,Opvulmateriaal papier 5kg (Verpakkingsmateriaal),500
+472,PACKM-007-0472,Palletwikkelfolie 500mm (Verpakkingsmateriaal),250
+473,PACKM-008-0473,Etiket blanco 70x36 300st (Verpakkingsmateriaal),100
+474,PACKM-009-0474,Verzenddoos 600x400x400 (Verpakkingsmateriaal),200
+475,PACKM-010-0475,Stansmes dispensertape (Verpakkingsmateriaal),250
+476,PACKM-011-0476,Zipsluitzak A4 100-pak (Verpakkingsmateriaal),50
+477,PACKM-012-0477,Hoekbeschermer 50-pak (Verpakkingsmateriaal),250
+478,PACKM-013-0478,Schuimfolie 100cm x 25m (Verpakkingsmateriaal),200
+479,PACKM-014-0479,Vacuumzak 60x80cm 10-pak (Verpakkingsmateriaal),100
+480,PACKM-015-0480,Documenthouder voor doos (Verpakkingsmateriaal),100
+481,PACKM-001-0481,Kartonnen doos 400x300x300 (Verpakkingsmateriaal),200
+482,PACKM-002-0482,Luchtkussens 100-pak (Verpakkingsmateriaal),10
+483,PACKM-003-0483,Krimpfolie 50cm x 200m (Verpakkingsmateriaal),250
+484,PACKM-004-0484,Tape bruin 48mm 6-pak (Verpakkingsmateriaal),100
+485,PACKM-005-0485,Bubbeltjesfolie 100cm x10m (Verpakkingsmateriaal),50
+486,PACKM-006-0486,Opvulmateriaal papier 5kg (Verpakkingsmateriaal),150
+487,PACKM-007-0487,Palletwikkelfolie 500mm (Verpakkingsmateriaal),50
+488,PACKM-008-0488,Etiket blanco 70x36 300st (Verpakkingsmateriaal),25
+489,PACKM-009-0489,Verzenddoos 600x400x400 (Verpakkingsmateriaal),10
+490,PACKM-010-0490,Stansmes dispensertape (Verpakkingsmateriaal),250
+491,PACKM-011-0491,Zipsluitzak A4 100-pak (Verpakkingsmateriaal),150
+492,PACKM-012-0492,Hoekbeschermer 50-pak (Verpakkingsmateriaal),20
+493,PACKM-013-0493,Schuimfolie 100cm x 25m (Verpakkingsmateriaal),150
+494,PACKM-014-0494,Vacuumzak 60x80cm 10-pak (Verpakkingsmateriaal),25
+495,PACKM-015-0495,Documenthouder voor doos (Verpakkingsmateriaal),500
+496,PACKM-001-0496,Kartonnen doos 400x300x300 (Verpakkingsmateriaal),150
+497,PACKM-002-0497,Luchtkussens 100-pak (Verpakkingsmateriaal),100
+498,PACKM-003-0498,Krimpfolie 50cm x 200m (Verpakkingsmateriaal),100
+499,PACKM-004-0499,Tape bruin 48mm 6-pak (Verpakkingsmateriaal),250
+500,PACKM-005-0500,Bubbeltjesfolie 100cm x10m (Verpakkingsmateriaal),100
+501,PACKM-006-0501,Opvulmateriaal papier 5kg (Verpakkingsmateriaal),150
+502,PACKM-007-0502,Palletwikkelfolie 500mm (Verpakkingsmateriaal),250
+503,PACKM-008-0503,Etiket blanco 70x36 300st (Verpakkingsmateriaal),25
+504,PACKM-009-0504,Verzenddoos 600x400x400 (Verpakkingsmateriaal),50
+505,PACKM-010-0505,Stansmes dispensertape (Verpakkingsmateriaal),200
+506,PACKM-011-0506,Zipsluitzak A4 100-pak (Verpakkingsmateriaal),500
+507,PACKM-012-0507,Hoekbeschermer 50-pak (Verpakkingsmateriaal),200
+508,PACKM-013-0508,Schuimfolie 100cm x 25m (Verpakkingsmateriaal),500
+509,PACKM-014-0509,Vacuumzak 60x80cm 10-pak (Verpakkingsmateriaal),150
+510,PACKM-015-0510,Documenthouder voor doos (Verpakkingsmateriaal),100
+511,PACKM-001-0511,Kartonnen doos 400x300x300 (Verpakkingsmateriaal),150
+512,PACKM-002-0512,Luchtkussens 100-pak (Verpakkingsmateriaal),50
+513,PACKM-003-0513,Krimpfolie 50cm x 200m (Verpakkingsmateriaal),500
+514,PACKM-004-0514,Tape bruin 48mm 6-pak (Verpakkingsmateriaal),50
+515,PACKM-005-0515,Bubbeltjesfolie 100cm x10m (Verpakkingsmateriaal),250
+516,PACKM-006-0516,Opvulmateriaal papier 5kg (Verpakkingsmateriaal),100
+517,PACKM-007-0517,Palletwikkelfolie 500mm (Verpakkingsmateriaal),20
+518,PACKM-008-0518,Etiket blanco 70x36 300st (Verpakkingsmateriaal),10
+519,PACKM-009-0519,Verzenddoos 600x400x400 (Verpakkingsmateriaal),250
+520,PACKM-010-0520,Stansmes dispensertape (Verpakkingsmateriaal),50
