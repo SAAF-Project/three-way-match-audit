@@ -1,0 +1,103 @@
+{
+  "lang_code": "en",
+  "lang_html_attr": "en",
+  "lang_label": "EN",
+  "ui": {
+    "header_badge_upload": "P2P AUDIT · 3-WAY MATCH",
+    "header_badge_result": "P2P AUDIT · 3-WAY MATCH · RESULT",
+    "header_right": "Internal use",
+    "lang_switch_aria": "Switch language",
+    "footer_text": "SAAF · Three-way Match Audit · Runs locally — files never leave your machine.",
+
+    "upload_title": "Run a 3-way match",
+    "upload_subtitle": "Upload the purchase order, goods receipt and purchase invoice. The application compares the documents at header and line level and reports — per line — whether they match, warn or fail.",
+    "error_prefix": "Parse error:",
+
+    "doc_po_name": "Purchase order",
+    "doc_po_desc": "The order as issued by procurement (PO).",
+    "doc_grn_name": "Goods receipt",
+    "doc_grn_desc": "Packing slip or receipt confirmation from the warehouse.",
+    "doc_inv_name": "Purchase invoice",
+    "doc_inv_desc": "The invoice received from the supplier.",
+
+    "tolerances_section": "Tolerances",
+    "tol_price_label": "Unit price (€)",
+    "tol_price_hint_html": "Max. deviation on <em>unit price</em> between PO and invoice.",
+    "tol_qty_label": "Quantity (units)",
+    "tol_qty_hint_html": "Max. deviation on <em>quantity</em> between PO, GRN and invoice.",
+    "tol_line_total_label": "Line total (€)",
+    "tol_line_total_hint_html": "Max. deviation on <em>line amount</em> between PO and invoice.",
+    "tol_total_label": "Document total (€)",
+    "tol_total_hint_html": "Max. deviation on <em>grand total</em> between PO and invoice.",
+
+    "presets_label": "Preset:",
+    "preset_strict": "Strict",
+    "preset_standard": "Standard",
+    "preset_relaxed": "Relaxed",
+
+    "submit_button": "Run match",
+    "sample_prompt": "Need a sample?",
+    "sample_po": "PO",
+    "sample_grn": "GRN",
+    "sample_invoice": "Invoice",
+
+    "formats_section": "Supported formats",
+    "formats_text_html": "CSV and JSON. Column names are flexible — <code>quantity</code>/<code>qty</code>, <code>unit_price</code>/<code>price</code>, <code>line_total</code>/<code>amount</code> are all recognised. See <a href=\"/sample/po_sample.csv\">the sample files</a> for the exact structure.",
+
+    "result_title": "Match result",
+    "result_subtitle_prefix": "Comparing",
+    "overall_label": "Overall",
+    "verdict_match_text": "Match — all documents agree",
+    "verdict_warning_text": "Warning — immaterial differences",
+    "verdict_fail_text": "Fail — material discrepancy detected",
+
+    "summary_match": "Match",
+    "summary_warning": "Warning",
+    "summary_fail": "Fail",
+    "summary_discrepancy": "Total discrepancy",
+
+    "doc_po_short": "Purchase order",
+    "doc_grn_short": "Goods receipt",
+    "doc_inv_short": "Invoice",
+    "doc_field_number": "Number",
+    "doc_field_po_ref": "PO ref",
+    "doc_field_supplier": "Supplier",
+    "doc_field_date": "Date",
+    "doc_field_lines": "Lines",
+    "doc_field_total": "Total",
+
+    "header_issues_label": "Header issues",
+    "lines_section": "Line comparison",
+    "col_line": "Line",
+    "col_sku": "SKU / Description",
+    "col_po_qty": "PO qty",
+    "col_grn_qty": "GRN qty",
+    "col_inv_qty": "Inv. qty",
+    "col_po_price": "PO price",
+    "col_inv_price": "Inv. price",
+    "col_po_total": "PO total",
+    "col_inv_total": "Inv. total",
+    "col_result": "Result",
+
+    "back_link": "← Run new match"
+  },
+  "msg": {
+    "po_missing_number": "PO does not contain a purchase order number.",
+    "po_ref_grn_differs": "PO reference on goods receipt differs: '{grn_po}' vs PO '{po_num}'.",
+    "po_ref_inv_differs": "PO reference on invoice differs: '{inv_po}' vs PO '{po_num}'.",
+    "supplier_inconsistent": "Supplier name is not consistent across documents: {names}.",
+    "total_discrepancy": "Total discrepancy PO ↔ invoice: {disc} (PO {po_total} → invoice {inv_total}).",
+
+    "line_missing_po": "Line missing on the purchase order.",
+    "line_missing_inv": "Line missing on the invoice.",
+    "line_missing_grn": "Line missing on the goods receipt.",
+
+    "qty_billed_vs_po": "Invoiced quantity differs from PO: {inv_qty} vs {po_qty}.",
+    "qty_received_more_po": "Received quantity greater than ordered: {grn_qty} vs {po_qty}.",
+    "qty_received_less_po": "Received quantity less than ordered: {grn_qty} vs {po_qty}.",
+    "qty_billed_vs_grn": "Invoiced quantity greater than received: {inv_qty} vs {grn_qty}.",
+
+    "price_differs": "Unit price differs: PO {po_price} → invoice {inv_price}.",
+    "line_total_differs": "Line total differs: PO {po_total} → invoice {inv_total}."
+  }
+}

@@ -42,7 +42,47 @@ header.top {
   text-transform: uppercase;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin: -32px -24px 32px;
+}
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.top-right-label {
+  font-size: 11px;
+  color: var(--text-hint);
+  letter-spacing: 0.08em;
+}
+
+.lang-switcher {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: white;
+  border: 1px solid var(--gray-line);
+  border-radius: 4px;
+}
+
+.lang-link {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-sec);
+  text-decoration: none;
+  border-radius: 3px;
+  transition: all 100ms;
+}
+
+.lang-link:hover { color: var(--blu-dark); background: var(--blu-light); }
+
+.lang-link.active {
+  background: var(--blu-dark);
+  color: white;
 }
 
 h1 {
@@ -127,15 +167,16 @@ form.upload {
 
 .tolerances {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin: 4px 0 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 4px 0 12px;
   padding: 16px;
   background: var(--gray-bg);
   border-radius: 6px;
 }
-@media (max-width: 720px) { .tolerances { grid-template-columns: 1fr; } }
-.tolerances label {
+@media (max-width: 900px) { .tolerances { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .tolerances { grid-template-columns: 1fr; } }
+.tol-field label {
   display: block;
   font-size: 11px;
   color: var(--text-hint);
@@ -143,7 +184,7 @@ form.upload {
   letter-spacing: 0.08em;
   margin-bottom: 6px;
 }
-.tolerances input {
+.tol-field input {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid var(--gray-line);
@@ -151,6 +192,46 @@ form.upload {
   font-size: 13px;
   font-family: inherit;
   background: white;
+}
+.tol-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: var(--text-hint);
+  line-height: 1.4;
+}
+.tol-hint em { font-style: normal; color: var(--text-sec); font-weight: 500; }
+
+.presets {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 20px;
+  flex-wrap: wrap;
+}
+.presets-label {
+  font-size: 11px;
+  color: var(--text-hint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-right: 4px;
+}
+.preset {
+  background: white;
+  border: 1px solid var(--gray-line);
+  color: var(--text-sec);
+  padding: 5px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 120ms;
+}
+.preset:hover { border-color: var(--blu-dark); color: var(--blu-dark); }
+.preset.active {
+  background: var(--blu-dark);
+  color: white;
+  border-color: var(--blu-dark);
 }
 
 .actions {

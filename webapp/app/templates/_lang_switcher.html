@@ -1,0 +1,9 @@
+{# Reusable top-right language switcher.
+   Expects: `t`, `lang`, `languages`, `request` in context. #}
+<nav class="lang-switcher" aria-label="{{ t.ui.lang_switch_aria }}">
+  {% for L in languages %}
+    <a href="/lang/{{ L.code }}?next={{ request.url.path }}"
+       class="lang-link{% if L.code == lang %} active{% endif %}"
+       aria-current="{% if L.code == lang %}true{% else %}false{% endif %}">{{ L.label }}</a>
+  {% endfor %}
+</nav>

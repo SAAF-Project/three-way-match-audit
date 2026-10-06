@@ -6,6 +6,11 @@ header and line level and produces a per-line + overall verdict:
   MATCH   — everything aligns within tolerance
   WARNING — non-critical difference (e.g. small qty variance, missing GRN price)
   FAIL    — material mismatch (qty or amount outside tolerance, missing line)
+
+All user-visible issue text goes through a `messages` dict (loaded from the
+i18n JSON files) so the matcher can produce output in any language without
+code changes. Severity is driven by the key that was emitted, not by the
+language-specific message text.
 """
 from __future__ import annotations
 
@@ -15,9 +20,38 @@ from typing import Any, Literal
 Verdict = Literal["MATCH", "WARNING", "FAIL"]
 
 # Default tolerances — configurable per call.
-DEFAULT_PRICE_TOLERANCE = 0.01     # €
-DEFAULT_QTY_TOLERANCE = 0.0        # units
-DEFAULT_TOTAL_TOLERANCE = 0.05     # € on document total
+DEFAULT_PRICE_TOLERANCE = 0.01       # € on unit price
+DEFAULT_QTY_TOLERANCE = 0.0          # units
+DEFAULT_TOTAL_TOLERANCE = 0.05       # € on document total
+DEFAULT_LINE_TOTAL_TOLERANCE = 0.01  # € on per-line amount
+
+# Default Dutch message templates — matches the historical behaviour when
+# three_way_match() is called without a `messages` argument (e.g. unit tests
+# and the CLI). The webapp passes the loaded i18n dict instead.
+DEFAULT_MESSAGES: dict[str, str] = {
+    "po_missing_number":     "PO bevat geen inkoopordernummer.",
+    "po_ref_grn_differs":    "PO-referentie op goederenontvangst wijkt af: '{grn_po}' vs PO '{po_num}'.",
+    "po_ref_inv_differs":    "PO-referentie op factuur wijkt af: '{inv_po}' vs PO '{po_num}'.",
+    "supplier_inconsistent": "Leveranciernaam is niet consistent tussen documenten: {names}.",
+    "total_discrepancy":     "Totale afwijking PO ↔ factuur: {disc} (PO {po_total} → factuur {inv_total}).",
+    "line_missing_po":       "Regel ontbreekt op de inkooporder.",
+    "line_missing_inv":      "Regel ontbreekt op de factuur.",
+    "line_missing_grn":      "Regel ontbreekt op de goederenontvangst.",
+    "qty_billed_vs_po":      "Gefactureerd aantal wijkt af van PO: {inv_qty} vs {po_qty}.",
+    "qty_received_more_po":  "Ontvangen aantal groter dan besteld: {grn_qty} vs {po_qty}.",
+    "qty_received_less_po":  "Ontvangen aantal minder dan besteld: {grn_qty} vs {po_qty}.",
+    "qty_billed_vs_grn":     "Gefactureerd aantal groter dan ontvangen: {inv_qty} vs {grn_qty}.",
+    "price_differs":         "Stukprijs wijkt af: PO {po_price} → factuur {inv_price}.",
+    "line_total_differs":    "Regeltotaal wijkt af: PO {po_total} → factuur {inv_total}.",
+}
+
+# Which header issue KEYS roll up to FAIL. Everything else is WARNING-level.
+# Driven by key, so wording / language changes can't silently flip severity.
+_HEADER_FAIL_KEYS = frozenset({
+    "po_ref_grn_differs",
+    "po_ref_inv_differs",
+    "supplier_inconsistent",
+})
 
 
 @dataclass
@@ -95,8 +129,14 @@ def three_way_match(
     price_tolerance: float = DEFAULT_PRICE_TOLERANCE,
     qty_tolerance: float = DEFAULT_QTY_TOLERANCE,
     total_tolerance: float = DEFAULT_TOTAL_TOLERANCE,
+    line_total_tolerance: float = DEFAULT_LINE_TOTAL_TOLERANCE,
+    messages: dict[str, str] | None = None,
 ) -> MatchReport:
-    header_issues = _check_header(po, grn, inv)
+    msgs = {**DEFAULT_MESSAGES, **(messages or {})}
+
+    header_entries = _check_header(po, grn, inv, msgs)
+    header_issues = [e["text"] for e in header_entries]
+    header_has_fail = any(e["key"] in _HEADER_FAIL_KEYS for e in header_entries)
 
     # Build line lookup by (line_number, sku) — prefer sku, fall back to line_number.
     po_lines = _index_lines(po.get("lines", []))
@@ -127,7 +167,9 @@ def three_way_match(
 
         _grade_line(lr, po_l, grn_l, inv_l,
                     qty_tolerance=qty_tolerance,
-                    price_tolerance=price_tolerance)
+                    price_tolerance=price_tolerance,
+                    line_total_tolerance=line_total_tolerance,
+                    msgs=msgs)
         line_results.append(lr)
 
     po_total = float(po.get("total") or 0.0)
@@ -136,12 +178,11 @@ def three_way_match(
     disc = round(inv_total - po_total, 2)
 
     if abs(disc) > total_tolerance:
-        header_issues.append(
-            f"Totale afwijking PO ↔ factuur: {_eur(disc)} "
-            f"(PO {_eur(po_total)} → factuur {_eur(inv_total)})."
-        )
+        header_issues.append(msgs["total_discrepancy"].format(
+            disc=_eur(disc), po_total=_eur(po_total), inv_total=_eur(inv_total),
+        ))
 
-    result = _rollup(header_issues, line_results, disc, total_tolerance)
+    result = _rollup(line_results, header_has_fail, disc, total_tolerance, header_issues)
 
     return MatchReport(
         result=result,
@@ -160,28 +201,33 @@ def three_way_match(
 # ---------------------------------------------------------------------------
 # Header checks
 # ---------------------------------------------------------------------------
-def _check_header(po, grn, inv) -> list[str]:
-    issues: list[str] = []
+def _check_header(po, grn, inv, msgs: dict[str, str]) -> list[dict[str, str]]:
+    """Return a list of {"key": <msg_key>, "text": <formatted text>} entries.
+
+    Keeping the key alongside the text means severity rollup is driven by
+    identifier instead of by searching the (now translatable) text.
+    """
+    entries: list[dict[str, str]] = []
     po_num = po.get("po_number") or po.get("document_number") or ""
     grn_po = grn.get("po_number") or ""
     inv_po = inv.get("po_number") or ""
 
+    def add(key: str, **vars) -> None:
+        entries.append({"key": key, "text": msgs[key].format(**vars)})
+
     if not po_num:
-        issues.append("PO bevat geen inkoopordernummer.")
+        add("po_missing_number")
     if grn_po and po_num and grn_po != po_num:
-        issues.append(f"PO-referentie op goederenontvangst wijkt af: '{grn_po}' vs PO '{po_num}'.")
+        add("po_ref_grn_differs", grn_po=grn_po, po_num=po_num)
     if inv_po and po_num and inv_po != po_num:
-        issues.append(f"PO-referentie op factuur wijkt af: '{inv_po}' vs PO '{po_num}'.")
+        add("po_ref_inv_differs", inv_po=inv_po, po_num=po_num)
 
     suppliers = {d.get("supplier", "").strip().lower() for d in (po, grn, inv) if d.get("supplier")}
     if len({s for s in suppliers if s}) > 1:
-        issues.append(
-            "Leveranciernaam is niet consistent tussen documenten: "
-            + " / ".join(sorted(d.get("supplier", "") for d in (po, grn, inv) if d.get("supplier")))
-            + "."
-        )
+        names = " / ".join(sorted(d.get("supplier", "") for d in (po, grn, inv) if d.get("supplier")))
+        add("supplier_inconsistent", names=names)
 
-    return issues
+    return entries
 
 
 # ---------------------------------------------------------------------------
@@ -222,18 +268,26 @@ def _grade_line(
     *,
     qty_tolerance: float,
     price_tolerance: float,
+    line_total_tolerance: float = DEFAULT_LINE_TOTAL_TOLERANCE,
+    msgs: dict[str, str] | None = None,
 ) -> None:
+    msgs = msgs or DEFAULT_MESSAGES
+    # Track which categories of issue have fired this line, instead of
+    # grepping the text later — the text is translated.
+    emitted: set[str] = set()
+
+    def add(key: str, severity: Verdict, **vars) -> None:
+        lr.issues.append(msgs[key].format(**vars))
+        emitted.add(key)
+        if severity == "FAIL" or (severity == "WARNING" and lr.result == "MATCH"):
+            lr.result = severity
+
     if po_l is None:
-        lr.issues.append("Regel ontbreekt op de inkooporder.")
-        lr.result = "FAIL"
+        add("line_missing_po", "FAIL")
     if inv_l is None:
-        lr.issues.append("Regel ontbreekt op de factuur.")
-        lr.result = "FAIL"
+        add("line_missing_inv", "FAIL")
     if grn_l is None:
-        lr.issues.append("Regel ontbreekt op de goederenontvangst.")
-        # Missing GRN is warning-level unless invoice also missing.
-        if lr.result != "FAIL":
-            lr.result = "WARNING"
+        add("line_missing_grn", "WARNING")
 
     # Quantity checks — always compare what we have.
     po_qty = _num(po_l, "quantity")
@@ -241,55 +295,41 @@ def _grade_line(
     inv_qty = _num(inv_l, "quantity")
 
     if po_qty is not None and inv_qty is not None and abs(inv_qty - po_qty) > qty_tolerance:
-        lr.issues.append(
-            f"Gefactureerd aantal wijkt af van PO: {_num_str(inv_qty)} vs {_num_str(po_qty)}."
-        )
-        lr.result = "FAIL"
+        add("qty_billed_vs_po", "FAIL", inv_qty=_num_str(inv_qty), po_qty=_num_str(po_qty))
     if po_qty is not None and grn_qty is not None and abs(grn_qty - po_qty) > qty_tolerance:
         # Over-receipt is worse than short-receipt.
         if grn_qty > po_qty:
-            lr.issues.append(
-                f"Ontvangen aantal groter dan besteld: {_num_str(grn_qty)} vs {_num_str(po_qty)}."
-            )
-            lr.result = "FAIL"
+            add("qty_received_more_po", "FAIL", grn_qty=_num_str(grn_qty), po_qty=_num_str(po_qty))
         else:
-            lr.issues.append(
-                f"Ontvangen aantal minder dan besteld: {_num_str(grn_qty)} vs {_num_str(po_qty)}."
-            )
-            if lr.result != "FAIL":
-                lr.result = "WARNING"
+            add("qty_received_less_po", "WARNING", grn_qty=_num_str(grn_qty), po_qty=_num_str(po_qty))
     if grn_qty is not None and inv_qty is not None and abs(inv_qty - grn_qty) > qty_tolerance:
         if inv_qty > grn_qty:
-            lr.issues.append(
-                f"Gefactureerd aantal groter dan ontvangen: {_num_str(inv_qty)} vs {_num_str(grn_qty)}."
-            )
-            lr.result = "FAIL"
+            add("qty_billed_vs_grn", "FAIL", inv_qty=_num_str(inv_qty), grn_qty=_num_str(grn_qty))
 
     # Price / total checks.
     po_price = _num(po_l, "unit_price")
     inv_price = _num(inv_l, "unit_price")
     if po_price is not None and inv_price is not None and abs(inv_price - po_price) > price_tolerance:
-        lr.issues.append(
-            f"Stukprijs wijkt af: PO {_eur(po_price)} → factuur {_eur(inv_price)}."
-        )
-        lr.result = "FAIL"
+        add("price_differs", "FAIL", po_price=_eur(po_price), inv_price=_eur(inv_price))
 
     po_total = _num(po_l, "line_total")
     inv_total = _num(inv_l, "line_total")
-    if po_total is not None and inv_total is not None and abs(inv_total - po_total) > 0.01:
-        # Only flag if not already caught by qty/price mismatch.
-        already = any("aantal" in i or "prijs" in i for i in lr.issues)
-        if not already:
-            lr.issues.append(
-                f"Regeltotaal wijkt af: PO {_eur(po_total)} → factuur {_eur(inv_total)}."
-            )
-            lr.result = "FAIL"
+    if po_total is not None and inv_total is not None and abs(inv_total - po_total) > line_total_tolerance:
+        # Only flag if not already caught by qty/price mismatch — the line
+        # total discrepancy is implied by those and would just be noise.
+        caught_already = emitted & {
+            "qty_billed_vs_po", "qty_received_more_po", "qty_received_less_po",
+            "qty_billed_vs_grn", "price_differs",
+        }
+        if not caught_already:
+            add("line_total_differs", "FAIL", po_total=_eur(po_total), inv_total=_eur(inv_total))
 
 
-def _rollup(header_issues, lines, disc, total_tolerance) -> Verdict:
+def _rollup(lines, header_has_fail: bool, disc: float, total_tolerance: float,
+            header_issues: list[str]) -> Verdict:
     if any(l.result == "FAIL" for l in lines):
         return "FAIL"
-    if header_issues and any("wijkt af" in h for h in header_issues):
+    if header_has_fail:
         return "FAIL"
     if abs(disc) > total_tolerance:
         return "FAIL"
