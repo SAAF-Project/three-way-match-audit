@@ -15,9 +15,10 @@ from typing import Any, Literal
 Verdict = Literal["MATCH", "WARNING", "FAIL"]
 
 # Default tolerances — configurable per call.
-DEFAULT_PRICE_TOLERANCE = 0.01     # €
-DEFAULT_QTY_TOLERANCE = 0.0        # units
-DEFAULT_TOTAL_TOLERANCE = 0.05     # € on document total
+DEFAULT_PRICE_TOLERANCE = 0.01       # € on unit price
+DEFAULT_QTY_TOLERANCE = 0.0          # units
+DEFAULT_TOTAL_TOLERANCE = 0.05       # € on document total
+DEFAULT_LINE_TOTAL_TOLERANCE = 0.01  # € on per-line amount
 
 
 @dataclass
@@ -95,6 +96,7 @@ def three_way_match(
     price_tolerance: float = DEFAULT_PRICE_TOLERANCE,
     qty_tolerance: float = DEFAULT_QTY_TOLERANCE,
     total_tolerance: float = DEFAULT_TOTAL_TOLERANCE,
+    line_total_tolerance: float = DEFAULT_LINE_TOTAL_TOLERANCE,
 ) -> MatchReport:
     header_issues = _check_header(po, grn, inv)
 
@@ -127,7 +129,8 @@ def three_way_match(
 
         _grade_line(lr, po_l, grn_l, inv_l,
                     qty_tolerance=qty_tolerance,
-                    price_tolerance=price_tolerance)
+                    price_tolerance=price_tolerance,
+                    line_total_tolerance=line_total_tolerance)
         line_results.append(lr)
 
     po_total = float(po.get("total") or 0.0)
@@ -222,6 +225,7 @@ def _grade_line(
     *,
     qty_tolerance: float,
     price_tolerance: float,
+    line_total_tolerance: float = DEFAULT_LINE_TOTAL_TOLERANCE,
 ) -> None:
     if po_l is None:
         lr.issues.append("Regel ontbreekt op de inkooporder.")
@@ -276,7 +280,7 @@ def _grade_line(
 
     po_total = _num(po_l, "line_total")
     inv_total = _num(inv_l, "line_total")
-    if po_total is not None and inv_total is not None and abs(inv_total - po_total) > 0.01:
+    if po_total is not None and inv_total is not None and abs(inv_total - po_total) > line_total_tolerance:
         # Only flag if not already caught by qty/price mismatch.
         already = any("aantal" in i or "prijs" in i for i in lr.issues)
         if not already:

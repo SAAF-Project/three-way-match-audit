@@ -49,18 +49,32 @@
 
         <div class="section-label">Toleranties</div>
         <div class="tolerances">
-          <div>
+          <div class="tol-field">
             <label>Stukprijs (€)</label>
             <input type="number" name="price_tolerance" value="0.01" step="0.01" min="0">
+            <span class="tol-hint">Max. afwijking op <em>unit price</em> tussen PO en factuur.</span>
           </div>
-          <div>
+          <div class="tol-field">
             <label>Aantal (eenheden)</label>
             <input type="number" name="qty_tolerance" value="0" step="0.5" min="0">
+            <span class="tol-hint">Max. afwijking op <em>quantity</em> tussen PO, GRN en factuur.</span>
           </div>
-          <div>
+          <div class="tol-field">
+            <label>Regeltotaal (€)</label>
+            <input type="number" name="line_total_tolerance" value="0.01" step="0.01" min="0">
+            <span class="tol-hint">Max. afwijking op <em>line amount</em> tussen PO en factuur.</span>
+          </div>
+          <div class="tol-field">
             <label>Documenttotaal (€)</label>
             <input type="number" name="total_tolerance" value="0.05" step="0.01" min="0">
+            <span class="tol-hint">Max. afwijking op <em>grand total</em> tussen PO en factuur.</span>
           </div>
+        </div>
+        <div class="presets">
+          <span class="presets-label">Snelkeuze:</span>
+          <button type="button" class="preset" data-preset="strict">Strikt</button>
+          <button type="button" class="preset" data-preset="standard">Standaard</button>
+          <button type="button" class="preset" data-preset="relaxed">Soepel</button>
         </div>
 
         <div class="actions">

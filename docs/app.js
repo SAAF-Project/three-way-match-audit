@@ -196,7 +196,7 @@ function normalise(raw, docType) {
 // ---------------------------------------------------------------------------
 // Matcher
 // ---------------------------------------------------------------------------
-function threeWayMatch(po, grn, inv, { price_tolerance = 0.01, qty_tolerance = 0.0, total_tolerance = 0.05 } = {}) {
+function threeWayMatch(po, grn, inv, { price_tolerance = 0.01, qty_tolerance = 0.0, total_tolerance = 0.05, line_total_tolerance = 0.01 } = {}) {
   const header_issues = checkHeader(po, grn, inv);
   const poLines = indexLines(po.lines || []);
   const grnLines = indexLines(grn.lines || []);
@@ -224,7 +224,7 @@ function threeWayMatch(po, grn, inv, { price_tolerance = 0.01, qty_tolerance = 0
       result: "MATCH",
       issues: [],
     };
-    gradeLine(lr, po_l, grn_l, inv_l, qty_tolerance, price_tolerance);
+    gradeLine(lr, po_l, grn_l, inv_l, qty_tolerance, price_tolerance, line_total_tolerance);
     line_results.push(lr);
   }
 
@@ -306,7 +306,7 @@ function lineKey(line) {
   return `DESC:${(line.description || "").trim().toLowerCase()}`;
 }
 
-function gradeLine(lr, po_l, grn_l, inv_l, qtyTol, priceTol) {
+function gradeLine(lr, po_l, grn_l, inv_l, qtyTol, priceTol, lineTotalTol) {
   if (!po_l) { lr.issues.push("Regel ontbreekt op de inkooporder."); lr.result = "FAIL"; }
   if (!inv_l) { lr.issues.push("Regel ontbreekt op de factuur."); lr.result = "FAIL"; }
   if (!grn_l) {
@@ -345,7 +345,7 @@ function gradeLine(lr, po_l, grn_l, inv_l, qtyTol, priceTol) {
 
   const po_tot = po_l ? po_l.line_total : null;
   const inv_tot = inv_l ? inv_l.line_total : null;
-  if (po_tot !== null && inv_tot !== null && Math.abs(inv_tot - po_tot) > 0.01) {
+  if (po_tot !== null && inv_tot !== null && Math.abs(inv_tot - po_tot) > lineTotalTol) {
     const already = lr.issues.some(i => i.includes("aantal") || i.includes("prijs"));
     if (!already) {
       lr.issues.push(`Regeltotaal wijkt af: PO ${eur(po_tot)} → factuur ${eur(inv_tot)}.`);
@@ -456,6 +456,24 @@ function workpaperFilename(report) {
   return `audit_workpaper_${poNum}_${verdict}_${stamp}.json`;
 }
 
+// Tolerance presets ---------------------------------------------------------
+const TOLERANCE_PRESETS = {
+  strict:   { price_tolerance: 0,    qty_tolerance: 0, line_total_tolerance: 0,    total_tolerance: 0    },
+  standard: { price_tolerance: 0.01, qty_tolerance: 0, line_total_tolerance: 0.01, total_tolerance: 0.05 },
+  relaxed:  { price_tolerance: 0.10, qty_tolerance: 1, line_total_tolerance: 1.00, total_tolerance: 5.00 },
+};
+document.querySelectorAll(".preset").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const vals = TOLERANCE_PRESETS[btn.dataset.preset];
+    for (const [k, v] of Object.entries(vals)) {
+      const input = document.querySelector(`[name="${k}"]`);
+      if (input) input.value = v;
+    }
+    document.querySelectorAll(".preset").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  });
+});
+
 form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   clearError();
@@ -470,6 +488,7 @@ form.addEventListener("submit", async (ev) => {
   const tol = {
     price_tolerance: parseFloat(fd.get("price_tolerance")) || 0,
     qty_tolerance: parseFloat(fd.get("qty_tolerance")) || 0,
+    line_total_tolerance: parseFloat(fd.get("line_total_tolerance")) || 0,
     total_tolerance: parseFloat(fd.get("total_tolerance")) || 0,
   };
   try {

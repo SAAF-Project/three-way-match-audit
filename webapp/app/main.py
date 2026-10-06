@@ -41,11 +41,12 @@ async def _read_and_parse(uploads: dict[str, UploadFile]) -> tuple[dict, dict, d
     return sources, parsed, raw
 
 
-def _tolerance_dict(price: float, qty: float, total: float) -> dict[str, float]:
+def _tolerance_dict(price: float, qty: float, total: float, line_total: float) -> dict[str, float]:
     return {
         "price_tolerance": price,
         "qty_tolerance": qty,
         "total_tolerance": total,
+        "line_total_tolerance": line_total,
     }
 
 
@@ -63,6 +64,7 @@ async def match(
     price_tolerance: float = Form(0.01),
     qty_tolerance: float = Form(0.0),
     total_tolerance: float = Form(0.05),
+    line_total_tolerance: float = Form(0.01),
 ):
     try:
         sources, parsed, _ = await _read_and_parse(
@@ -75,12 +77,13 @@ async def match(
             status_code=400,
         )
 
-    parameters = _tolerance_dict(price_tolerance, qty_tolerance, total_tolerance)
+    parameters = _tolerance_dict(price_tolerance, qty_tolerance, total_tolerance, line_total_tolerance)
     report = three_way_match(
         parsed["po"], parsed["grn"], parsed["inv"],
         price_tolerance=price_tolerance,
         qty_tolerance=qty_tolerance,
         total_tolerance=total_tolerance,
+        line_total_tolerance=line_total_tolerance,
     ).to_dict()
 
     workpaper = build_workpaper(
@@ -111,6 +114,7 @@ async def match_api(
     price_tolerance: float = Form(0.01),
     qty_tolerance: float = Form(0.0),
     total_tolerance: float = Form(0.05),
+    line_total_tolerance: float = Form(0.01),
 ):
     try:
         _, parsed, _ = await _read_and_parse(
@@ -124,6 +128,7 @@ async def match_api(
         price_tolerance=price_tolerance,
         qty_tolerance=qty_tolerance,
         total_tolerance=total_tolerance,
+        line_total_tolerance=line_total_tolerance,
     ).to_dict()
 
 
@@ -135,6 +140,7 @@ async def workpaper_endpoint(
     price_tolerance: float = Form(0.01),
     qty_tolerance: float = Form(0.0),
     total_tolerance: float = Form(0.05),
+    line_total_tolerance: float = Form(0.01),
 ):
     """Return a downloadable JSON audit workpaper for the same three files.
 
@@ -149,12 +155,13 @@ async def workpaper_endpoint(
     except ParseError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
 
-    parameters = _tolerance_dict(price_tolerance, qty_tolerance, total_tolerance)
+    parameters = _tolerance_dict(price_tolerance, qty_tolerance, total_tolerance, line_total_tolerance)
     report = three_way_match(
         parsed["po"], parsed["grn"], parsed["inv"],
         price_tolerance=price_tolerance,
         qty_tolerance=qty_tolerance,
         total_tolerance=total_tolerance,
+        line_total_tolerance=line_total_tolerance,
     ).to_dict()
 
     workpaper = build_workpaper(

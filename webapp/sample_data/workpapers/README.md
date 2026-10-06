@@ -17,12 +17,13 @@ Het auditbestand is één JSON-document dat als bewijs bij het auditdossier word
 {
   "audit_workpaper": {
     "schema_version": "1.0",
-    "generated_at": "2026-09-15T13:28:00+00:00",
+    "generated_at": "2026-10-06T07:11:17+00:00",
     "tool": { "name": "SAAF Three-way Match", "version": "0.1.0" },
     "match_parameters": {
-      "price_tolerance": 0.01,     // €
-      "qty_tolerance": 0.0,        // eenheden
-      "total_tolerance": 0.05      // €
+      "price_tolerance": 0.01,       // € — max. afwijking op unit price (PO ↔ factuur)
+      "qty_tolerance": 0.0,          // eenheden — max. afwijking op quantity (PO ↔ GRN ↔ factuur)
+      "line_total_tolerance": 0.01,  // € — max. afwijking op regeltotaal (PO ↔ factuur)
+      "total_tolerance": 0.05        // € — max. afwijking op documenttotaal (PO ↔ factuur)
     }
   },
   "source_data": {
