@@ -1,0 +1,57 @@
+field,value
+document_number,GRN-2025-5200
+po_number,PO-2025-1600
+supplier,Consortium Supply Partners BV
+date,2025-09-10
+
+line_number,sku,description,quantity
+1,OFFCE-001-0001,Balpen blauw 10-pak,25
+2,OFFCE-002-0002,Notitieblok A5,50
+3,OFFCE-003-0003,Ordner A4 80mm blauw,10
+4,OFFCE-004-0004,Post-it 76x76mm 100vel,10
+5,OFFCE-005-0005,Whiteboard marker set,10
+6,ICTPE-001-0006,USB-C kabel 1m,20
+7,ICTPE-002-0007,HDMI kabel 2m,50
+8,ICTPE-003-0008,USB-hub 4-poorts,20
+9,ICTPE-004-0009,Muis draadloos,50
+10,ICTPE-005-0010,Webcam HD 1080p,100
+11,INDST-001-0011,Bouten M6x20 100-pak,20
+12,INDST-002-0012,Moeren M6 100-pak,100
+13,INDST-003-0013,Kabelbinder 200mm 100-pak,100
+14,INDST-004-0014,Borgmoer M8 50-pak,10
+15,INDST-005-0015,O-ring 20x2 10-pak,10
+16,CLEAN-001-0016,Allesreiniger 5L,20
+17,CLEAN-002-0017,Glasreiniger spray 750ml,20
+18,CLEAN-003-0018,Desinfectiemiddel 1L,100
+19,CLEAN-004-0019,Toiletpapier 2-laags 48 rol,20
+20,CLEAN-005-0020,Microvezeldoek 10-pak,100
+21,SAFTY-001-0021,Veiligheidshelm klasse 1,25
+22,SAFTY-002-0022,Werkhandschoenen XL,10
+23,SAFTY-003-0023,Veiligheidsbril helder,100
+24,SAFTY-004-0024,Stofmasker FFP2 10-pak,100
+25,SAFTY-005-0025,Eerste hulp koffer C,25
+26,PACKM-001-0026,Kartonnen doos 400x300x300,50
+27,PACKM-002-0027,Luchtkussens 100-pak,20
+28,PACKM-003-0028,Krimpfolie 50cm x 200m,20
+29,PACKM-004-0029,Tape bruin 48mm 6-pak,25
+30,PACKM-005-0030,Bubbeltjesfolie 100cm x 10m,25
+31,OFFCE-001-0031,Balpen blauw 10-pak,25
+32,OFFCE-002-0032,Notitieblok A5,10
+33,OFFCE-003-0033,Ordner A4 80mm blauw,50
+34,OFFCE-004-0034,Post-it 76x76mm 100vel,25
+35,OFFCE-005-0035,Whiteboard marker set,50
+36,ICTPE-001-0036,USB-C kabel 1m,10
+37,ICTPE-002-0037,HDMI kabel 2m,100
+38,ICTPE-003-0038,USB-hub 4-poorts,25
+39,ICTPE-004-0039,Muis draadloos,25
+40,ICTPE-005-0040,Webcam HD 1080p,100
+41,INDST-001-0041,Bouten M6x20 100-pak,10
+42,INDST-002-0042,Moeren M6 100-pak,25
+43,INDST-003-0043,Kabelbinder 200mm 100-pak,10
+44,INDST-004-0044,Borgmoer M8 50-pak,25
+45,INDST-005-0045,O-ring 20x2 10-pak,50
+46,CLEAN-001-0046,Allesreiniger 5L,50
+47,CLEAN-002-0047,Glasreiniger spray 750ml,25
+48,CLEAN-003-0048,Desinfectiemiddel 1L,50
+49,CLEAN-004-0049,Toiletpapier 2-laags 48 rol,100
+50,CLEAN-005-0050,Microvezeldoek 10-pak,10

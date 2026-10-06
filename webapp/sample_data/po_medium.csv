@@ -1,0 +1,57 @@
+field,value
+document_number,PO-2025-1600
+po_number,PO-2025-1600
+supplier,Consortium Supply Partners BV
+date,2025-09-01
+
+line_number,sku,description,quantity,unit_price,line_total
+1,OFFCE-001-0001,Balpen blauw 10-pak,25,0.91,22.75
+2,OFFCE-002-0002,Notitieblok A5,50,2.11,105.5
+3,OFFCE-003-0003,Ordner A4 80mm blauw,10,3.85,38.5
+4,OFFCE-004-0004,Post-it 76x76mm 100vel,10,2.74,27.4
+5,OFFCE-005-0005,Whiteboard marker set,10,5.59,55.9
+6,ICTPE-001-0006,USB-C kabel 1m,20,3.44,68.8
+7,ICTPE-002-0007,HDMI kabel 2m,50,5.78,289.0
+8,ICTPE-003-0008,USB-hub 4-poorts,20,12.69,253.8
+9,ICTPE-004-0009,Muis draadloos,50,18.17,908.5
+10,ICTPE-005-0010,Webcam HD 1080p,100,34.47,3447.0
+11,INDST-001-0011,Bouten M6x20 100-pak,20,4.12,82.4
+12,INDST-002-0012,Moeren M6 100-pak,100,2.95,295.0
+13,INDST-003-0013,Kabelbinder 200mm 100-pak,100,3.61,361.0
+14,INDST-004-0014,Borgmoer M8 50-pak,10,3.26,32.6
+15,INDST-005-0015,O-ring 20x2 10-pak,10,1.1,11.0
+16,CLEAN-001-0016,Allesreiniger 5L,20,8.43,168.6
+17,CLEAN-002-0017,Glasreiniger spray 750ml,20,3.21,64.2
+18,CLEAN-003-0018,Desinfectiemiddel 1L,100,6.75,675.0
+19,CLEAN-004-0019,Toiletpapier 2-laags 48 rol,20,14.66,293.2
+20,CLEAN-005-0020,Microvezeldoek 10-pak,100,7.34,734.0
+21,SAFTY-001-0021,Veiligheidshelm klasse 1,25,11.81,295.25
+22,SAFTY-002-0022,Werkhandschoenen XL,10,4.21,42.1
+23,SAFTY-003-0023,Veiligheidsbril helder,100,3.76,376.0
+24,SAFTY-004-0024,Stofmasker FFP2 10-pak,100,9.47,947.0
+25,SAFTY-005-0025,Eerste hulp koffer C,25,23.97,599.25
+26,PACKM-001-0026,Kartonnen doos 400x300x300,50,1.19,59.5
+27,PACKM-002-0027,Luchtkussens 100-pak,20,9.0,180.0
+28,PACKM-003-0028,Krimpfolie 50cm x 200m,20,14.26,285.2
+29,PACKM-004-0029,Tape bruin 48mm 6-pak,25,5.81,145.25
+30,PACKM-005-0030,Bubbeltjesfolie 100cm x 10m,25,10.29,257.25
+31,OFFCE-001-0031,Balpen blauw 10-pak,25,0.89,22.25
+32,OFFCE-002-0032,Notitieblok A5,10,2.07,20.7
+33,OFFCE-003-0033,Ordner A4 80mm blauw,50,3.75,187.5
+34,OFFCE-004-0034,Post-it 76x76mm 100vel,25,2.71,67.75
+35,OFFCE-005-0035,Whiteboard marker set,50,5.48,274.0
+36,ICTPE-001-0036,USB-C kabel 1m,10,3.54,35.4
+37,ICTPE-002-0037,HDMI kabel 2m,100,5.87,587.0
+38,ICTPE-003-0038,USB-hub 4-poorts,25,12.82,320.5
+39,ICTPE-004-0039,Muis draadloos,25,18.57,464.25
+40,ICTPE-005-0040,Webcam HD 1080p,100,35.42,3542.0
+41,INDST-001-0041,Bouten M6x20 100-pak,10,4.16,41.6
+42,INDST-002-0042,Moeren M6 100-pak,25,2.9,72.5
+43,INDST-003-0043,Kabelbinder 200mm 100-pak,10,3.54,35.4
+44,INDST-004-0044,Borgmoer M8 50-pak,25,3.22,80.5
+45,INDST-005-0045,O-ring 20x2 10-pak,50,1.09,54.5
+46,CLEAN-001-0046,Allesreiniger 5L,50,8.63,431.5
+47,CLEAN-002-0047,Glasreiniger spray 750ml,25,3.14,78.5
+48,CLEAN-003-0048,Desinfectiemiddel 1L,50,6.76,338.0
+49,CLEAN-004-0049,Toiletpapier 2-laags 48 rol,100,14.67,1467.0
+50,CLEAN-005-0050,Microvezeldoek 10-pak,10,7.22,72.2
