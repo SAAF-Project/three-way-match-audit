@@ -1,12 +1,15 @@
-"""Gemini audit agent — drives three-way match via tool use.
+"""Gemini audit agent — drives two runs of three-way match via tool use.
 
-The AI calls `three_way_match` as a registered tool (max 3 times), then
-produces a structured AuditNarrative JSON. Guardrails:
+The AI makes exactly two tool calls:
+  Run 1 — user-specified tolerances (what the auditor configured)
+  Run 2 — AI professional judgment (tolerances chosen based on purchase type,
+           supplier context, and applicable accounting standards)
+
+Guardrails:
   - Only one tool is registered; the model cannot call anything else.
   - Tolerance params are clamped to [0, 1] server-side before the tool runs.
   - Verdicts produced by the matcher are immutable — the AI cannot change them.
-  - First turn forces a tool call (mode=ANY); subsequent turns use AUTO.
-  - Loop is hard-capped at _MAX_TOOL_CALLS.
+  - First turn forces a tool call (mode=ANY); cap enforced at _MAX_TOOL_CALLS.
 
 Requires GEMINI_API_KEY environment variable.
 """
@@ -23,19 +26,30 @@ _MAX_TOOL_CALLS = 3
 
 _SYSTEM_PROMPT = """You are a P2P audit agent specialising in Procure-to-Pay controls and the IIA audit framework.
 
-You have exactly one tool: three_way_match. You MUST call it at least once to get the authoritative match results.
-You may call it up to 3 times total if you want to explore different tolerance settings to assess borderline findings.
+You have exactly one tool: three_way_match. You MUST call it exactly twice:
+
+CALL 1 — User tolerances: The user message tells you the exact values to use. Call with those values.
+CALL 2 — Professional judgment: Based on the purchase type, supplier, line items, amounts, and applicable
+accounting standards (IFRS/IAS 2, CIPS procurement norms, or relevant industry practice), choose tolerances
+that a professional auditor would apply to this specific purchase. These may be stricter OR looser than the
+user's values — what matters is that they reflect sound accounting judgment for this category of spend.
 
 RULES YOU CANNOT BREAK:
-1. You MUST call three_way_match before producing your assessment.
-2. You CANNOT change, override, or contradict any FAIL/WARNING/MATCH verdict the tool returns.
-3. Your findings must only reference lines where the tool returned FAIL or WARNING.
-4. Do not fabricate issues on lines the tool returned as MATCH.
+1. You MUST make both calls before producing your final assessment.
+2. You CANNOT change, override, or contradict any FAIL/WARNING/MATCH verdict either call returns.
+3. Your findings must only reference lines where a call returned FAIL or WARNING.
+4. Do not fabricate issues on lines that returned MATCH in both calls.
 
-After calling the tool, respond with ONLY a JSON object — no markdown fences, no extra keys:
+After both calls, respond with ONLY this JSON object — no markdown fences, no extra keys:
 {
   "summary": "<1-2 sentence plain-language summary of the overall audit situation>",
   "risk_level": "<HIGH | MEDIUM | LOW | CLEAR>",
+  "ai_tolerances": {
+    "price_tolerance": <float>,
+    "qty_tolerance": <float>,
+    "total_tolerance": <float>,
+    "rationale": "<why these tolerances are appropriate for this specific purchase — cite accounting standards or industry norms>"
+  },
   "findings": [
     {
       "line": "<SKU or line identifier>",
@@ -48,11 +62,7 @@ After calling the tool, respond with ONLY a JSON object — no markdown fences, 
   "overall_recommendation": "<what the AP team should do next>"
 }
 
-Risk level guidance:
-- HIGH: any FAIL verdict, fraud pattern, or total discrepancy > 1% of document value
-- MEDIUM: WARNING verdicts, discrepancies 0.1%-1%
-- LOW: discrepancies within tolerance or < 0.1%
-- CLEAR: all lines MATCH, no issues found"""
+Risk level: HIGH = any FAIL verdict or fraud pattern; MEDIUM = WARNING verdicts; LOW = minor issues; CLEAR = all MATCH."""
 
 
 def _clamp(v: Any, lo: float = 0.0, hi: float = 1.0) -> float:
@@ -75,10 +85,19 @@ def run_audit_agent(
     qty_tolerance: float,
     total_tolerance: float,
 ) -> dict[str, Any] | None:
-    """Run the agentic audit: the AI calls the matcher as a tool.
+    """Run two-pass agentic audit.
 
-    Returns {"report": dict, "narrative": dict, "tool_calls": list} or None on failure.
-    The caller should fall back to a direct three_way_match() call when None is returned.
+    Pass 1: AI calls matcher with user tolerances.
+    Pass 2: AI calls matcher again with its own professional judgment tolerances.
+
+    Returns:
+        {
+          "report":      dict,        # Run 1 — user tolerances (authoritative)
+          "ai_report":   dict | None, # Run 2 — AI judgment tolerances
+          "narrative":   dict,        # AI narrative including ai_tolerances rationale
+          "tool_calls":  list,        # Full call log for re-performance
+        }
+    or None on failure (caller falls back to direct rule-based match).
     """
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -98,22 +117,22 @@ def run_audit_agent(
                 description=(
                     "Run the authoritative rule-based three-way match on the uploaded documents. "
                     "Returns FAIL/WARNING/MATCH per line plus overall verdict and discrepancy totals. "
-                    "Tolerances are floats in [0, 1]. You must call this before giving your assessment."
+                    "Tolerances are floats in [0, 1]. You must call this twice."
                 ),
                 parameters=types.Schema(
                     type=types.Type.OBJECT,
                     properties={
                         "price_tolerance": types.Schema(
                             type=types.Type.NUMBER,
-                            description=f"Max unit-price delta in euros. Default {price_tolerance}. Range [0, 1].",
+                            description="Max unit-price delta in euros. Range [0, 1].",
                         ),
                         "qty_tolerance": types.Schema(
                             type=types.Type.NUMBER,
-                            description=f"Max quantity delta in units. Default {qty_tolerance}. Range [0, 1].",
+                            description="Max quantity delta in units. Range [0, 1].",
                         ),
                         "total_tolerance": types.Schema(
                             type=types.Type.NUMBER,
-                            description=f"Max document-total delta in euros. Default {total_tolerance}. Range [0, 1].",
+                            description="Max document-total delta in euros. Range [0, 1].",
                         ),
                     },
                     required=["price_tolerance", "qty_tolerance", "total_tolerance"],
@@ -129,9 +148,10 @@ def run_audit_agent(
         "## Purchase Order\n" + json.dumps(po, indent=2, ensure_ascii=False)
         + "\n\n## Goods Receipt Note\n" + json.dumps(grn, indent=2, ensure_ascii=False)
         + "\n\n## Invoice\n" + json.dumps(inv, indent=2, ensure_ascii=False)
-        + f"\n\nSuggested tolerances — price: {price_tolerance}, "
-        f"qty: {qty_tolerance}, total: {total_tolerance}. "
-        "Call three_way_match now."
+        + f"\n\nCALL 1: Call three_way_match with price_tolerance={price_tolerance}, "
+        f"qty_tolerance={qty_tolerance}, total_tolerance={total_tolerance} (user-specified).\n"
+        "CALL 2: Then call three_way_match again with your own professional judgment tolerances "
+        "based on the purchase type and accounting standards."
     )
 
     contents: list = [
@@ -139,12 +159,11 @@ def run_audit_agent(
     ]
 
     tool_calls_log: list[dict[str, Any]] = []
-    last_report: dict[str, Any] | None = None
+    reports: list[dict[str, Any]] = []  # indexed by call order
     tool_call_count = 0
 
     try:
         while True:
-            # Force a tool call on the first turn; let the model decide on subsequent turns
             if tool_call_count == 0:
                 tool_cfg = types.ToolConfig(
                     function_calling_config=types.FunctionCallingConfig(
@@ -176,20 +195,21 @@ def run_audit_agent(
             fc_parts = [p for p in candidate_content.parts if p.function_call is not None]
 
             if not fc_parts:
-                # No tool calls — the model produced its final narrative text
+                # No more tool calls — final narrative response
                 narrative_text = next(
                     (p.text for p in candidate_content.parts if getattr(p, "text", None)),
                     None,
                 )
-                if narrative_text is None or last_report is None:
+                if narrative_text is None or not reports:
                     return None
+                narrative = _parse_json(narrative_text)
                 return {
-                    "report": last_report,
-                    "narrative": _parse_json(narrative_text),
+                    "report":     reports[0],
+                    "ai_report":  reports[1] if len(reports) > 1 else None,
+                    "narrative":  narrative,
                     "tool_calls": tool_calls_log,
                 }
 
-            # Execute each function call (server-side clamping enforces tolerance guardrail)
             fn_response_parts = []
             for fc_part in fc_parts:
                 if tool_call_count >= _MAX_TOOL_CALLS:
@@ -203,25 +223,26 @@ def run_audit_agent(
                     "total_tolerance": _clamp(raw_args.get("total_tolerance", total_tolerance)),
                 }
                 report = _matcher(po, grn, inv, **clamped)
-                last_report = report.to_dict()
+                report_dict = report.to_dict()
+                reports.append(report_dict)
                 tool_calls_log.append({
-                    "call_number": tool_call_count,
+                    "call_number":    tool_call_count,
+                    "label":          "user_tolerances" if tool_call_count == 1 else "ai_judgment",
                     "requested_args": raw_args,
-                    "clamped_args": clamped,
-                    "overall_verdict": last_report.get("result"),
+                    "clamped_args":   clamped,
+                    "overall_verdict": report_dict.get("result"),
                 })
                 fn_response_parts.append(
                     types.Part(
                         function_response=types.FunctionResponse(
                             name=fc.name,
-                            response=last_report,
+                            response=report_dict,
                         )
                     )
                 )
 
             contents.append(types.Content(role="user", parts=fn_response_parts))
 
-            # Hard cap: if max tool calls reached, force a final text-only generation
             if tool_call_count >= _MAX_TOOL_CALLS:
                 final = client.models.generate_content(
                     model=_MODEL,
@@ -229,14 +250,15 @@ def run_audit_agent(
                     config=types.GenerateContentConfig(
                         system_instruction=_SYSTEM_PROMPT,
                         response_mime_type="application/json",
-                        # No tools= key: model cannot make another tool call
                     ),
                 )
-                if last_report is None:
+                if not reports:
                     return None
+                narrative = _parse_json(final.text)
                 return {
-                    "report": last_report,
-                    "narrative": _parse_json(final.text),
+                    "report":     reports[0],
+                    "ai_report":  reports[1] if len(reports) > 1 else None,
+                    "narrative":  narrative,
                     "tool_calls": tool_calls_log,
                 }
 

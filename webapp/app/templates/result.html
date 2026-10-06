@@ -80,6 +80,33 @@
       </div>
     {% endif %}
 
+    {% if narrative and narrative.ai_tolerances and ai_report %}
+      <div class="section-label">Tolerantievergelijking — twee runs</div>
+      <div class="tol-comparison">
+        <div class="tol-card">
+          <h4>Run 1 — Uw toleranties</h4>
+          <dl>
+            <dt>Stukprijs</dt><dd>€{{ "%.4f"|format(user_tolerances.price) }}</dd>
+            <dt>Aantal</dt><dd>{{ user_tolerances.qty }} eenheden</dd>
+            <dt>Documenttotaal</dt><dd>€{{ "%.4f"|format(user_tolerances.total) }}</dd>
+          </dl>
+          <span class="badge {{ r.result }}">{{ r.result }}</span>
+        </div>
+        <div class="tol-card">
+          <h4>Run 2 — AI professioneel oordeel</h4>
+          <dl>
+            <dt>Stukprijs</dt><dd>€{{ "%.4f"|format(narrative.ai_tolerances.price_tolerance) }}</dd>
+            <dt>Aantal</dt><dd>{{ narrative.ai_tolerances.qty_tolerance }} eenheden</dd>
+            <dt>Documenttotaal</dt><dd>€{{ "%.4f"|format(narrative.ai_tolerances.total_tolerance) }}</dd>
+          </dl>
+          <span class="badge {{ ai_report.result }}">{{ ai_report.result }}</span>
+        </div>
+      </div>
+      <div class="tol-rationale">
+        <strong>AI redenering:</strong> {{ narrative.ai_tolerances.rationale }}
+      </div>
+    {% endif %}
+
     {% if narrative and narrative.patterns %}
       <div class="header-issues patterns-block">
         <h4>Gedetecteerde patronen</h4>

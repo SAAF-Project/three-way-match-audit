@@ -139,6 +139,7 @@ async def match_explain(
     )
     if agent_result:
         report_dict = agent_result["report"]
+        ai_report   = agent_result["ai_report"]
         narrative   = agent_result["narrative"]
         tool_calls  = agent_result["tool_calls"]
     else:
@@ -149,6 +150,7 @@ async def match_explain(
             qty_tolerance=qty_tolerance,
             total_tolerance=total_tolerance,
         ).to_dict()
+        ai_report  = None
         narrative  = None
         tool_calls = []
 
@@ -168,12 +170,18 @@ async def match_explain(
     return templates.TemplateResponse(
         request, "result.html",
         {
-            "report": report_dict,
-            "narrative": narrative,
-            "audit_log_json": json.dumps(log, indent=2, ensure_ascii=False),
+            "report":          report_dict,
+            "ai_report":       ai_report,
+            "narrative":       narrative,
+            "user_tolerances": {
+                "price":   price_tolerance,
+                "qty":     qty_tolerance,
+                "total":   total_tolerance,
+            },
+            "audit_log_json":  json.dumps(log, indent=2, ensure_ascii=False),
             "filenames": {
-                "po": po_file.filename,
-                "grn": grn_file.filename,
+                "po":      po_file.filename,
+                "grn":     grn_file.filename,
                 "invoice": invoice_file.filename,
             },
         },
@@ -228,4 +236,4 @@ async def match_explain_api(
         audit_narrative=narrative,
         tool_calls=tool_calls,
     )
-    return JSONResponse(log)
+    return JSONResponse(log)  # ai_report is inside tool_calls[1] in the audit log
