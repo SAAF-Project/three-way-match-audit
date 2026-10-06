@@ -35,7 +35,7 @@ templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html", {})
 
 
 @app.post("/match", response_class=HTMLResponse)
@@ -54,9 +54,7 @@ async def match(
         inv = parse_document(await _read_limited(invoice_file), invoice_file.filename or "invoice", "INVOICE")
     except ParseError as e:
         return templates.TemplateResponse(
-            "index.html",
-            {"request": request, "error": str(e)},
-            status_code=400,
+            request, "index.html", {"error": str(e)}, status_code=400,
         )
 
     report = three_way_match(
@@ -67,9 +65,8 @@ async def match(
     )
 
     return templates.TemplateResponse(
-        "result.html",
+        request, "result.html",
         {
-            "request": request,
             "report": report.to_dict(),
             "filenames": {
                 "po": po_file.filename,
@@ -133,9 +130,7 @@ async def match_explain(
         inv = parse_document(inv_bytes, invoice_file.filename or "invoice", "INVOICE")
     except ParseError as e:
         return templates.TemplateResponse(
-            "index.html",
-            {"request": request, "error": str(e)},
-            status_code=400,
+            request, "index.html", {"error": str(e)}, status_code=400,
         )
 
     report = three_way_match(
@@ -159,9 +154,8 @@ async def match_explain(
     )
 
     return templates.TemplateResponse(
-        "result.html",
+        request, "result.html",
         {
-            "request": request,
             "report": report_dict,
             "narrative": narrative,
             "audit_log_json": json.dumps(log, indent=2, ensure_ascii=False),
