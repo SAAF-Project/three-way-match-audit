@@ -36,6 +36,7 @@ async def match(
     price_tolerance: float = Form(0.01),
     qty_tolerance: float = Form(0.0),
     total_tolerance: float = Form(0.05),
+    line_total_tolerance: float = Form(0.01),
 ):
     try:
         po = parse_document(await po_file.read(), po_file.filename or "po", "PO")
@@ -53,6 +54,7 @@ async def match(
         price_tolerance=price_tolerance,
         qty_tolerance=qty_tolerance,
         total_tolerance=total_tolerance,
+        line_total_tolerance=line_total_tolerance,
     )
 
     return templates.TemplateResponse(
@@ -77,6 +79,7 @@ async def match_api(
     price_tolerance: float = Form(0.01),
     qty_tolerance: float = Form(0.0),
     total_tolerance: float = Form(0.05),
+    line_total_tolerance: float = Form(0.01),
 ):
     try:
         po = parse_document(await po_file.read(), po_file.filename or "po", "PO")
@@ -90,6 +93,7 @@ async def match_api(
         price_tolerance=price_tolerance,
         qty_tolerance=qty_tolerance,
         total_tolerance=total_tolerance,
+        line_total_tolerance=line_total_tolerance,
     )
     return report.to_dict()
 
