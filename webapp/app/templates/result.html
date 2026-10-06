@@ -90,7 +90,12 @@
             <dt>Aantal</dt><dd>{{ user_tolerances.qty }} eenheden</dd>
             <dt>Documenttotaal</dt><dd>€{{ "%.4f"|format(user_tolerances.total) }}</dd>
           </dl>
-          <span class="badge {{ r.result }}">{{ r.result }}</span>
+          <div class="tol-counts">
+            <div class="tol-count match"><span class="n">{{ r.summary.MATCH }}</span><span class="lbl">Match</span></div>
+            <div class="tol-count warn"><span class="n">{{ r.summary.WARNING }}</span><span class="lbl">Warning</span></div>
+            <div class="tol-count fail"><span class="n">{{ r.summary.FAIL }}</span><span class="lbl">Fail</span></div>
+          </div>
+          <span class="badge {{ r.result }}" style="margin-top:10px; display:inline-block;">{{ r.result }}</span>
         </div>
         <div class="tol-card">
           <h4>Run 2 — AI professioneel oordeel</h4>
@@ -99,7 +104,12 @@
             <dt>Aantal</dt><dd>{{ narrative.ai_tolerances.qty_tolerance }} eenheden</dd>
             <dt>Documenttotaal</dt><dd>€{{ "%.4f"|format(narrative.ai_tolerances.total_tolerance) }}</dd>
           </dl>
-          <span class="badge {{ ai_report.result }}">{{ ai_report.result }}</span>
+          <div class="tol-counts">
+            <div class="tol-count match"><span class="n">{{ ai_report.summary.MATCH }}</span><span class="lbl">Match</span></div>
+            <div class="tol-count warn"><span class="n">{{ ai_report.summary.WARNING }}</span><span class="lbl">Warning</span></div>
+            <div class="tol-count fail"><span class="n">{{ ai_report.summary.FAIL }}</span><span class="lbl">Fail</span></div>
+          </div>
+          <span class="badge {{ ai_report.result }}" style="margin-top:10px; display:inline-block;">{{ ai_report.result }}</span>
         </div>
       </div>
       <div class="tol-rationale">

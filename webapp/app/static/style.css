@@ -421,6 +421,37 @@ footer.bot {
 }
 .tol-card dt { color: var(--text-hint); }
 .tol-card dd { margin: 0; font-weight: 500; color: var(--text-pri); }
+.tol-counts {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.tol-count {
+  flex: 1;
+  border-radius: 5px;
+  padding: 8px 6px;
+  text-align: center;
+}
+.tol-count.match { background: var(--grn-light); }
+.tol-count.warn  { background: var(--amb-light); }
+.tol-count.fail  { background: var(--red-light); }
+.tol-count .n {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+.tol-count.match .n { color: var(--grn-dark); }
+.tol-count.warn  .n { color: var(--amb-dark); }
+.tol-count.fail  .n { color: var(--red-dark); }
+.tol-count .lbl {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-hint);
+  margin-top: 2px;
+}
 .tol-rationale {
   background: var(--gray-bg);
   border-radius: 6px;
