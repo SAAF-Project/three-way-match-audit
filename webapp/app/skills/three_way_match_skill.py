@@ -5,15 +5,15 @@ Other agents can import and call it directly, or invoke it via the
 /api/match/explain HTTP endpoint.
 
 Guardrails:
-- The AI agent is advisory only; match_report is always the authoritative output.
-- The Claude model is read-only: it cannot modify verdicts, tolerances, or inputs.
-- If ANTHROPIC_API_KEY is absent the skill returns the rule-based result only.
+- The AI agent calls the matcher as a tool; it cannot change verdicts or policy.
+- Tolerance params are clamped to [0, 1] server-side before the tool executes.
+- If GEMINI_API_KEY is absent the skill returns the rule-based result only.
 """
 from __future__ import annotations
 
 from typing import Any
 
-from app.services.agent import audit_narrative
+from app.services.agent import run_audit_agent
 from app.services.audit_log import build as build_audit_log
 from app.services.matcher import three_way_match
 from app.services.parsers import ParseError, parse_document
@@ -48,23 +48,36 @@ async def run(
         A dict with keys:
           - ``match_report``: authoritative rule-based results (always present)
           - ``audit_narrative``: AI risk assessment (None if API key absent or call failed)
-          - ``audit_trail``: full re-performance record with input hashes
+          - ``audit_trail``: full re-performance record with input hashes and tool call log
 
     Raises:
         ParseError: if any input file cannot be parsed.
     """
-    po_doc = parse_document(po, po_filename, "PO")
-    grn_doc = parse_document(grn, grn_filename, "GRN")
+    po_doc  = parse_document(po,      po_filename,      "PO")
+    grn_doc = parse_document(grn,     grn_filename,     "GRN")
     inv_doc = parse_document(invoice, invoice_filename, "INVOICE")
 
-    report = three_way_match(
+    # The AI agent drives the audit by calling the matcher as a tool
+    agent_result = run_audit_agent(
         po_doc, grn_doc, inv_doc,
-        price_tolerance=price_tolerance,
-        qty_tolerance=qty_tolerance,
-        total_tolerance=total_tolerance,
+        price_tolerance, qty_tolerance, total_tolerance,
     )
-    report_dict = report.to_dict()
-    narrative = audit_narrative(report_dict)
+
+    if agent_result:
+        report_dict = agent_result["report"]
+        narrative   = agent_result["narrative"]
+        tool_calls  = agent_result["tool_calls"]
+    else:
+        # Fallback: rule-based only
+        report_dict = three_way_match(
+            po_doc, grn_doc, inv_doc,
+            price_tolerance=price_tolerance,
+            qty_tolerance=qty_tolerance,
+            total_tolerance=total_tolerance,
+        ).to_dict()
+        narrative  = None
+        tool_calls = []
+
     trail = build_audit_log(
         po_bytes=po, grn_bytes=grn, invoice_bytes=invoice,
         po_filename=po_filename,
@@ -75,6 +88,7 @@ async def run(
         total_tolerance=total_tolerance,
         match_report=report_dict,
         audit_narrative=narrative,
+        tool_calls=tool_calls,
     )
 
     return {

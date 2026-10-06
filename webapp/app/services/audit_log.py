@@ -33,10 +33,11 @@ def build(
     total_tolerance: float,
     match_report: dict[str, Any],
     audit_narrative: dict[str, Any] | None,
+    tool_calls: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Return a structured audit trail dict suitable for JSON serialisation."""
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "generated_at": datetime.now(UTC).isoformat(),
         "app_version": _APP_VERSION,
         "run_parameters": {
@@ -50,11 +51,13 @@ def build(
             "invoice": {"filename": invoice_filename, "sha256": _sha256(invoice_bytes)},
         },
         "ai_model": _MODEL if audit_narrative else None,
+        "ai_tool_calls": tool_calls,
         "match_report": match_report,
         "audit_narrative": audit_narrative,
         "re_performance_note": (
             "To re-perform: supply the original files (verify by SHA-256 hash above), "
-            "run the three-way matcher with the parameters above, and call the AI agent "
-            f"with model {_MODEL}. The narrative is advisory; match_report is authoritative."
+            "run run_audit_agent() with the parameters above using model "
+            f"{_MODEL}. ai_tool_calls records what the agent called; "
+            "match_report is authoritative; narrative is advisory."
         ),
     }

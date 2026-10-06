@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.services.agent import audit_narrative
+from app.services.agent import run_audit_agent
 from app.services.audit_log import build as build_audit_log
 from app.services.matcher import three_way_match
 from app.services.parsers import ParseError, parse_document
@@ -133,14 +133,25 @@ async def match_explain(
             request, "index.html", {"error": str(e)}, status_code=400,
         )
 
-    report = three_way_match(
-        po, grn, inv,
-        price_tolerance=price_tolerance,
-        qty_tolerance=qty_tolerance,
-        total_tolerance=total_tolerance,
+    # The AI agent calls the matcher as a tool — it drives the entire workflow
+    agent_result = run_audit_agent(
+        po, grn, inv, price_tolerance, qty_tolerance, total_tolerance,
     )
-    report_dict = report.to_dict()
-    narrative = audit_narrative(report_dict)
+    if agent_result:
+        report_dict = agent_result["report"]
+        narrative   = agent_result["narrative"]
+        tool_calls  = agent_result["tool_calls"]
+    else:
+        # Fallback: rule-based only (no API key or agent error)
+        report_dict = three_way_match(
+            po, grn, inv,
+            price_tolerance=price_tolerance,
+            qty_tolerance=qty_tolerance,
+            total_tolerance=total_tolerance,
+        ).to_dict()
+        narrative  = None
+        tool_calls = []
+
     log = build_audit_log(
         po_bytes=po_bytes, grn_bytes=grn_bytes, invoice_bytes=inv_bytes,
         po_filename=po_file.filename or "po",
@@ -151,6 +162,7 @@ async def match_explain(
         total_tolerance=total_tolerance,
         match_report=report_dict,
         audit_narrative=narrative,
+        tool_calls=tool_calls,
     )
 
     return templates.TemplateResponse(
@@ -187,14 +199,23 @@ async def match_explain_api(
     except ParseError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
 
-    report = three_way_match(
-        po, grn, inv,
-        price_tolerance=price_tolerance,
-        qty_tolerance=qty_tolerance,
-        total_tolerance=total_tolerance,
+    agent_result = run_audit_agent(
+        po, grn, inv, price_tolerance, qty_tolerance, total_tolerance,
     )
-    report_dict = report.to_dict()
-    narrative = audit_narrative(report_dict)
+    if agent_result:
+        report_dict = agent_result["report"]
+        narrative   = agent_result["narrative"]
+        tool_calls  = agent_result["tool_calls"]
+    else:
+        report_dict = three_way_match(
+            po, grn, inv,
+            price_tolerance=price_tolerance,
+            qty_tolerance=qty_tolerance,
+            total_tolerance=total_tolerance,
+        ).to_dict()
+        narrative  = None
+        tool_calls = []
+
     log = build_audit_log(
         po_bytes=po_bytes, grn_bytes=grn_bytes, invoice_bytes=inv_bytes,
         po_filename=po_file.filename or "po",
@@ -205,5 +226,6 @@ async def match_explain_api(
         total_tolerance=total_tolerance,
         match_report=report_dict,
         audit_narrative=narrative,
+        tool_calls=tool_calls,
     )
     return JSONResponse(log)
