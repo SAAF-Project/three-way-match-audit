@@ -11,7 +11,7 @@ import json
 import os
 from typing import Any
 
-_MODEL = "gemini-2.0-flash"
+_MODEL = "gemini-3.8-flash"
 
 _SYSTEM_PROMPT = """You are a read-only audit reviewer specialising in Procure-to-Pay (P2P) controls and the IIA audit framework.
 
@@ -81,5 +81,6 @@ def audit_narrative(match_report: dict[str, Any]) -> dict[str, Any] | None:
             ),
         )
         return json.loads(response.text)
-    except Exception:
+    except Exception as e:
+        import traceback; traceback.print_exc()
         return None
