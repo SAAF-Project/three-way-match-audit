@@ -1,0 +1,11 @@
+field,value
+document_number,INV-2025-8892
+po_number,PO-2025-0142
+supplier,ACME Industrial BV
+date,2025-08-25
+amount_due,3633.00
+
+line_number,sku,description,quantity_billed,price,amount,quantity,unit_price,line_total
+1,SKU-A100,Widget A - roestvrij,50,26.00,1300.00,50,24.50,1225.00
+2,SKU-B200,Widget B - koperkleurig,22,89.00,1958.00,20,89.00,1780.00
+3,SKU-C300,Bevestigingsset,100,3.75,375.00,100,3.75,375.00
