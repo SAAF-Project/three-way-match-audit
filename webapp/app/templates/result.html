@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html lang="{{ t.lang_html_attr }}">
+<html lang="{{ t.lang_html_attr }}"{% if theme %} data-theme="{{ theme }}"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ t.ui.result_title }} — SAAF</title>
   <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/theme.js" defer></script>
+  <script src="/static/result_lang.js" defer></script>
 </head>
 <body>
   <div class="container">
     <header class="top">
       <span>{{ t.ui.header_badge_result }}</span>
       <div class="top-right">
+        {% include "_theme_toggle.html" %}
         {% include "_lang_switcher.html" %}
         <span class="top-right-label">{{ t.ui.header_right }}</span>
       </div>
@@ -124,5 +127,15 @@
 
     <footer class="bot">{{ t.ui.footer_text }}</footer>
   </div>
+
+  {# Lets the language switcher re-run this match; see static/result_lang.js. #}
+  <form id="rerun-form" action="/match" method="post" enctype="multipart/form-data" hidden>
+    {% for f in rerun_files %}
+      <input type="file" name="{{ f.field }}" data-filename="{{ f.filename }}" data-content="{{ f.content }}">
+    {% endfor %}
+    {% for name, value in rerun_tolerances.items() %}
+      <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {% endfor %}
+  </form>
 </body>
 </html>
