@@ -39,6 +39,8 @@ import math
 import re
 from typing import Any
 
+from app.services.validation import ValidationFailed, validate_document
+
 
 class ParseError(ValueError):
     """Raised when a file cannot be parsed into the canonical shape."""
@@ -83,7 +85,14 @@ def parse_document(raw: bytes, filename: str, doc_type: str) -> dict[str, Any]:
             f"Bestandstype niet ondersteund voor '{filename}'. Gebruik .csv of .json."
         )
 
-    return _normalise(parsed, doc_type)
+    doc = _normalise(parsed, doc_type)
+    try:
+        validate_document(parsed, doc, doc_type)
+    except ValidationFailed as e:
+        raise ParseError(
+            f"Validatie van '{filename}' mislukt: " + "; ".join(e.messages)
+        ) from e
+    return doc
 
 
 def _check_content(raw: bytes, filename: str) -> None:
