@@ -17,7 +17,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 Vergelijkt drie documenten op:
 
-- **Header** — PO-nummer consistentie, leveranciernaam
+- **Header** — PO-nummer, documentnummer en leveranciernaam: aanwezig en consistent; vermeld totaal = som van de regels
 - **Regelniveau** — per SKU: aantallen (PO ↔ GRN ↔ factuur), stukprijzen (PO ↔ factuur), regeltotalen
 - **Documenttotaal** — PO vs factuur binnen tolerantie
 
@@ -71,6 +71,49 @@ line_number,sku,description,quantity,unit_price,line_total
 ```
 
 Voorbeeldbestanden staan in [`sample_data/`](sample_data/).
+
+## Invoercontrole en beveiliging
+
+De match faalt dicht (*no silent pass*): een controle die niet kan worden uitgevoerd, levert `FAIL` op en nooit een stille `MATCH`.
+
+**Bestanden die worden geweigerd** (foutmelding, geen resultaat):
+
+- groter dan 1 MB per bestand, of meer dan 5000 regels;
+- een Excel-, zip-, PDF- of ander binair bestand, ook als het `.csv` heet. Exporteer Excel als CSV (UTF-8);
+- een MIME-type dat niet bij CSV of JSON hoort;
+- een tekstcel die begint met `=`, `+`, `-` of `@`. Een spreadsheet voert zo'n cel uit als formule (CSV-/formule-injectie). Dit geldt ook voor stuurtekens;
+- getallen die niet eindig, negatief of dubbelzinnig zijn: `NaN`, `inf`, `1e309`, `-5`, en `1,000` of `1.000` (gebruik `1000`);
+- twee kolommen voor hetzelfde gegeven met verschillende waarden, zoals `quantity` 20 en `quantity_billed` 22;
+- een platte CSV waarvan de regels naar verschillende PO's of leveranciers verwijzen;
+- regels na een lege regel die een tweede regelblok vormen.
+
+**Wat altijd `FAIL` oplevert:**
+
+- een ontbrekend PO-nummer, documentnummer of leveranciersnaam op een van de documenten;
+- een ontbrekend aantal of een ontbrekende stukprijs, en op de factuur ook een ontbrekend regeltotaal;
+- aantal × stukprijs ≠ regeltotaal op een regel;
+- hetzelfde artikel op meerdere regels met verschillende stukprijzen;
+- een vermeld documenttotaal dat afwijkt van de som van de regels;
+- een gefactureerde regel die niet op de goederenontvangst staat.
+
+**HTTP:**
+
+- Content-Security-Policy zonder inline scripts of styles;
+- `X-Frame-Options: DENY` en `nosniff`;
+- HSTS achter HTTPS;
+- `Cache-Control: no-store` op matchresultaten;
+- cookies met `SameSite=Lax`, en `Secure` over HTTPS. De cookies bevatten alleen een taal- of themakeuze.
+
+Toleranties liggen tussen 0 en 100.
+
+**Wat er níét is:** inloggen en rate limiting. Zet daarvoor een reverse proxy of de beveiliging van het hostingplatform voor de app als hij niet publiek hoort te zijn.
+
+### Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest
+```
 
 ## API
 

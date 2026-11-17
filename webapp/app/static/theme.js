@@ -13,7 +13,7 @@
   document.querySelector(".theme-toggle")?.addEventListener("click", () => {
     const next = activeTheme() === "dark" ? "light" : "dark";
     root.dataset.theme = next;
-    document.cookie = `${COOKIE}=${next}; max-age=${ONE_YEAR}; path=/; samesite=lax`;
+    document.cookie = `${COOKIE}=${next}; max-age=${ONE_YEAR}; path=/; samesite=lax${location.protocol === "https:" ? "; secure" : ""}`;
   });
 
   // The Back button can restore a page rendered before the theme changed.

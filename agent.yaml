@@ -1,0 +1,33 @@
+# The Living Map manifest. Guide: SAAF-Project docs/conventions/agent-yaml.md
+# Replaces the seed manifest in SAAF-Project/saaf-living-map.
+name: "Three-Way Match Audit"
+repo: SAAF-Project/three-way-match-audit
+island: reporting
+maturity: ready
+category: Audit Reporting
+language: Python
+depends_on: []
+tags: [P2P, "3-way-match"]
+description: "Compares a purchase order, goods receipt and invoice and reports per line whether they match within the auditor's tolerances."
+# Set to true once the owners have checked island and maturity.
+confirmed: false
+
+# The approved mandate (issue #11: agent permissions). Changing this requires
+# a pull request. The webapp is deterministic: no model is called at runtime.
+mandate:
+  purpose: "Compare one uploaded PO, goods receipt and invoice and report MATCH, WARNING or FAIL per line and overall."
+  allowed_tools: [read_uploaded_files, write_match_report]
+  forbidden_actions:
+    - action: call_external_services
+      rationale: Supplier and pricing data must not leave the service; no LLM or third-party API is called (AUDIT-CRITERIA CO-5).
+    - action: store_uploaded_files
+      rationale: Uploads are processed in memory for one request and are not kept.
+    - action: modify_source_data
+      rationale: Inputs are audit evidence and must stay unchanged.
+    - action: pass_without_evidence
+      rationale: A check that cannot be performed (missing, non-numeric or contradictory value) is a FAIL, never a silent MATCH.
+    - action: change_own_config
+      rationale: Changes to this mandate and to the matching rules go through a pull request.
+  trusted_inputs: []   # every uploaded file is untrusted
+  human_approval_required_for: [using the match result in an audit report]
+  evidence_policy: cite_only_given_context

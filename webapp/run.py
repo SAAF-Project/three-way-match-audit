@@ -2,8 +2,13 @@
 
 Run: python run.py
 Then open http://127.0.0.1:8000
+
+Set DEBUG=1 to reload on code changes while developing.
 """
+import os
+
 import uvicorn
 
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000,
+                reload=os.environ.get("DEBUG") == "1")
