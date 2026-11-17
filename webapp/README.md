@@ -23,6 +23,24 @@ Vergelijkt drie documenten op:
 
 En geeft per regel én overall een oordeel: `MATCH` / `WARNING` / `FAIL`.
 
+## Datavalidatie (pandera)
+
+Vóór de match wordt elk document gevalideerd met [pandera](https://pandera.readthedocs.io/)
+(`app/services/validation.py`). Een document dat een regel schendt wordt geweigerd
+(HTTP 400) met een lijst van fouten; de match draait dan niet.
+
+| Regel | Waarom |
+|---|---|
+| `quantity` verplicht, eindig en ≥ 0; `unit_price` idem op PO en factuur | lege/`nan`/`inf`-waarden sloegen controles over |
+| aantal × stukprijs = regeltotaal (± €0,01) | verborgen overprijzing |
+| één stukprijs per SKU binnen een document | gesplitste regels met afwijkende prijs |
+| `document_number`, `supplier` en (op GRN/factuur) `po_number` niet leeg | lege kop omzeilde de kopcontrole |
+| kopvelden in een platte CSV gelijk op elke regel | afwijkende PO/leverancier in latere regels |
+| geen tekstveld dat begint met `=`, `+`, `-`, `@`, tab of CR | formule-injectie bij openen in Excel |
+| geen twee aliassen voor hetzelfde veld (bv. `quantity` én `quantity_billed`) | dubbelzinnige kolommen, zie `sample_data/invoice_evasion.csv` |
+
+Tests: `pip install -r requirements-dev.txt && python -m pytest tests`.
+
 ## Ondersteunde formaten
 
 CSV en JSON. Kolomnamen worden flexibel herkend: `quantity`/`qty`, `unit_price`/`price`, `line_total`/`amount`, etc.
@@ -73,10 +91,12 @@ webapp/
     main.py                 # FastAPI routes
     services/
       parsers.py            # CSV/JSON → canonieke shape
+      validation.py         # pandera-schema's: datakwaliteit vóór de match
       matcher.py            # Header + regel + totaal check
     templates/              # Jinja2 (index + result)
     static/style.css
   sample_data/              # Voorbeeld-PO, GRN, factuur (+ variant met afwijkingen)
+  tests/                    # pytest
   run.py                    # Launcher
 ```
 
