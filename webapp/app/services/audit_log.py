@@ -8,11 +8,10 @@ no server-side persistence is needed (works on ephemeral Vercel deployments).
 from __future__ import annotations
 
 import hashlib
-import os
+import json
 from datetime import UTC, datetime
 from typing import Any
 
-_MODEL = "gemini-flash-lite-latest"
 _APP_VERSION = "0.2.0"
 
 
@@ -34,6 +33,7 @@ def build(
     match_report: dict[str, Any],
     audit_narrative: dict[str, Any] | None,
     tool_calls: list[dict[str, Any]] | None = None,
+    ai: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return a structured audit trail dict suitable for JSON serialisation."""
     return {
@@ -50,14 +50,35 @@ def build(
             "grn":     {"filename": grn_filename,     "sha256": _sha256(grn_bytes)},
             "invoice": {"filename": invoice_filename, "sha256": _sha256(invoice_bytes)},
         },
-        "ai_model": _MODEL if audit_narrative else None,
+        # What happened to the AI part, stated even when it failed or was off.
+        "ai": {
+            "status": ai.get("status") if ai else "disabled",
+            "reason": ai.get("reason") if ai else None,
+            "data_sent_externally": bool(ai and ai.get("data_sent")),
+            "provider": ai.get("provider") if ai else None,
+            "model": ai.get("model") if ai else None,
+        },
+        # Only set when a validated narrative is included.
+        "ai_model": ai.get("model") if ai and audit_narrative else None,
         "ai_tool_calls": tool_calls,
         "match_report": match_report,
         "audit_narrative": audit_narrative,
-        "re_performance_note": (
-            "To re-perform: supply the original files (verify by SHA-256 hash above), "
-            "run run_audit_agent() with the parameters above using model "
-            f"{_MODEL}. ai_tool_calls records what the agent called; "
-            "match_report is authoritative; narrative is advisory."
-        ),
+        "re_performance_note": _re_performance_note(ai, audit_narrative),
     }
+
+
+def _re_performance_note(ai: dict[str, Any] | None, narrative: dict[str, Any] | None) -> str:
+    base = ("To re-perform: supply the original files (verify by SHA-256 hash above) and "
+            "run three_way_match() with run_parameters. match_report is authoritative and "
+            "was computed in Python with those parameters.")
+    if narrative and ai:
+        return (base + f" The advisory narrative was produced by {ai.get('model')} via "
+                f"{ai.get('provider')}; ai_tool_calls records the advisory Run 2. "
+                "Model output is not deterministic and may differ on re-run.")
+    status = ai.get("status") if ai else "disabled"
+    return base + f" No AI narrative is included (AI status: {status})."
+
+
+def to_json(log: dict[str, Any]) -> str:
+    """Serialise strictly: NaN or Infinity would make the file invalid JSON."""
+    return json.dumps(log, indent=2, ensure_ascii=False, allow_nan=False)
