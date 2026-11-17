@@ -15,7 +15,7 @@
 |---|---|
 | **Agent** | P2P 3-Way Match Audit Agent |
 | **Repository** | https://github.com/SAAF-Project/three-way-match-audit (describes the `main` branch — see notice above) |
-| **Maintainer(s)** | wehren (wil@itriskcontrol.nl) |
+| **Maintainer(s)** | wehren (wil@itriskcontrol.nl), vvsodrs — see `CODEOWNERS` |
 | **Last reviewed** | 2026-09-15 |
 | **Status** | Draft |
 
@@ -96,7 +96,7 @@ Reconciles Procure-to-Pay transactions across three source documents — purchas
 
 ## 7. Observability
 
-**Logged/traced today (CLI tool, on `main`):** two `print()` statements to stdout. No log file, no log levels, no timestamp beyond the PDF's own "Generated: …" footer line.
+**Logged/traced today (CLI tool, on `main`):** two `print()` statements to stdout. No log file, no log levels, no timestamp beyond the PDF's own "Generated: <date>" footer line.
 
 **Missing:**
 - No record of who ran the tool, when, or against which specific CSV file versions.
