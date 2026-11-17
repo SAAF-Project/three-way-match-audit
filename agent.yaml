@@ -13,13 +13,16 @@ description: "Compares a purchase order, goods receipt and invoice and reports p
 confirmed: false
 
 # The approved mandate (issue #11: agent permissions). Changing this requires
-# a pull request. The webapp is deterministic: no model is called at runtime.
+# a pull request. The verdict is deterministic Python; an optional advisory AI
+# review (Google Gemini, only when GEMINI_API_KEY is set) comes on top of it.
 mandate:
   purpose: "Compare one uploaded PO, goods receipt and invoice and report MATCH, WARNING or FAIL per line and overall."
-  allowed_tools: [read_uploaded_files, write_match_report]
+  allowed_tools: [read_uploaded_files, write_match_report, gemini_api_advisory_review]
   forbidden_actions:
-    - action: call_external_services
-      rationale: Supplier and pricing data must not leave the service; no LLM or third-party API is called (AUDIT-CRITERIA CO-5).
+    - action: call_external_services_other_than_the_gemini_review
+      rationale: Supplier and pricing data leave the service only for the advisory Gemini review, only when GEMINI_API_KEY is set, and the page and audit trail say so (AUDIT-CRITERIA CO-5, issue #18).
+    - action: let_the_model_change_the_verdict
+      rationale: Run 1 is computed in Python with the auditor's tolerances; the model's single tool call and its narrative are advisory and are rejected when they contradict Run 1.
     - action: store_uploaded_files
       rationale: Uploads are processed in memory for one request and are not kept.
     - action: modify_source_data
@@ -29,5 +32,5 @@ mandate:
     - action: change_own_config
       rationale: Changes to this mandate and to the matching rules go through a pull request.
   trusted_inputs: []   # every uploaded file is untrusted
-  human_approval_required_for: [using the match result in an audit report]
+  human_approval_required_for: [using the match result in an audit report, acting on an AI recommendation]
   evidence_policy: cite_only_given_context

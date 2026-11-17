@@ -126,19 +126,33 @@ curl -X POST http://127.0.0.1:8000/api/match \
   -F invoice_file=@sample_data/invoice_sample.csv
 ```
 
+## AI-beoordeling (optioneel)
+
+"Match uitvoeren" stuurt de bestanden naar `POST /match/explain`. Dat draait eerst de gewone regelgebaseerde match (Run 1, in Python, met uw toleranties): dat is het oordeel. Daarna volgt, alleen als `GEMINI_API_KEY` is gezet, een adviserende beoordeling door Google Gemini:
+
+- het model mag één keer de match draaien met eigen toleranties (Run 2, begrensd tot 0–1);
+- zijn toelichting wordt tegen een schema gecontroleerd en afgekeurd als die het oordeel van Run 1 tegenspreekt;
+- de voettekst en de downloadbare audittrail (`audit_trail.json`, met SHA-256-hashes van de invoer) zeggen of er gegevens naar Google zijn gestuurd.
+
+Zonder sleutel wordt niets verstuurd en toont de pagina alleen de regelgebaseerde match. JSON-variant: `POST /api/match/explain`. Er is geen rate limiting; elke aanroep met sleutel kost quotum bij Google.
+
 ## Structuur
 
 ```
 webapp/
   app/
     main.py                 # FastAPI routes
+    security.py             # Uploadlimiet en security headers (ASGI-middleware)
     services/
       parsers.py            # CSV/JSON → canonieke shape
       validation.py         # pandera-schema's: datakwaliteit vóór de match
       matcher.py            # Header + regel + totaal check
+      agent.py              # Optionele adviserende AI-beoordeling (Gemini)
+      audit_log.py          # Audittrail met SHA-256-hashes, voor heruitvoering
+    skills/                 # SAAF-skill: match + AI-beoordeling als functie
     templates/              # Jinja2 (index + result)
-    static/style.css
-  sample_data/              # Voorbeeld-PO, GRN, factuur (+ variant met afwijkingen)
+    static/                 # style.css en de scripts voor thema, taal en presets
+  sample_data/              # Voorbeeld-PO, GRN, factuur (klein, 50 en 520 regels)
   tests/                    # pytest
   run.py                    # Launcher
 ```

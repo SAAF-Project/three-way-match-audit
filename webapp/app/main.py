@@ -10,6 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.i18n import available as available_langs, default_lang, get_lang
+from app.services.agent import ai_enabled, run_audit_agent
+from app.services.audit_log import build as build_audit_log, to_json as audit_log_json
 from app.security import (
     MAX_UPLOAD_BYTES,
     BodySizeLimitMiddleware,
@@ -76,7 +78,7 @@ def _ctx(request: Request, **extra) -> dict:
     theme = request.cookies.get(THEME_COOKIE)
     return {"request": request, "lang": lang, "t": get_lang(lang),
             "languages": languages, "theme": theme if theme in THEMES else None,
-            **extra}
+            "ai_enabled": ai_enabled(), **extra}
 
 
 def _safe_filename(upload: UploadFile, fallback: str) -> str:
@@ -120,7 +122,7 @@ async def _run_match(request: Request, lang_code: str, files: dict[str, UploadFi
             for doc_type, (_, data, name) in uploads.items()}
     report = three_way_match(docs["PO"], docs["GRN"], docs["INVOICE"],
                              messages=t.get("msg"), **tolerances)
-    return report, uploads, tolerances
+    return report, uploads, tolerances, docs
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -168,7 +170,7 @@ async def match(
 ):
     lang_code = _lang_from(request)
     try:
-        report, uploads, tolerances = await _run_match(
+        report, uploads, tolerances, _ = await _run_match(
             request, lang_code,
             {"po_file": po_file, "grn_file": grn_file, "invoice_file": invoice_file},
             {"price_tolerance": price_tolerance, "qty_tolerance": qty_tolerance,
@@ -211,7 +213,7 @@ async def match_api(
 ):
     lang_code = lang if lang in available_langs() else _lang_from(request)
     try:
-        report, _, _ = await _run_match(
+        report, _, _, _ = await _run_match(
             request, lang_code,
             {"po_file": po_file, "grn_file": grn_file, "invoice_file": invoice_file},
             {"price_tolerance": price_tolerance, "qty_tolerance": qty_tolerance,
@@ -220,6 +222,109 @@ async def match_api(
     except (UploadRejected, ParseError) as e:
         return JSONResponse({"error": str(e)}, status_code=400)
     return JSONResponse(report.to_dict())
+
+
+async def _explain(request: Request, lang_code: str, files: dict[str, UploadFile],
+                   tolerance_form: dict[str, str]) -> dict:
+    """Rule-based match plus the advisory AI review (services/agent.py).
+
+    Run 1 is the same Python match as /match and stays authoritative. The
+    parsed documents are sent to the AI provider only when ai_enabled();
+    the result and the audit trail always say whether that happened.
+    """
+    _, uploads, tolerances, docs = await _run_match(request, lang_code, files, tolerance_form)
+    agent_result = run_audit_agent(
+        docs["PO"], docs["GRN"], docs["INVOICE"],
+        tolerances["price_tolerance"], tolerances["qty_tolerance"], tolerances["total_tolerance"],
+        line_total_tolerance=tolerances["line_total_tolerance"],
+        messages=get_lang(lang_code).get("msg"),
+    )
+    log = build_audit_log(
+        po_bytes=uploads["PO"][1], grn_bytes=uploads["GRN"][1], invoice_bytes=uploads["INVOICE"][1],
+        po_filename=uploads["PO"][2], grn_filename=uploads["GRN"][2],
+        invoice_filename=uploads["INVOICE"][2],
+        price_tolerance=tolerances["price_tolerance"],
+        qty_tolerance=tolerances["qty_tolerance"],
+        total_tolerance=tolerances["total_tolerance"],
+        line_total_tolerance=tolerances["line_total_tolerance"],
+        match_report=agent_result["report"],
+        audit_narrative=agent_result["narrative"],
+        tool_calls=agent_result["tool_calls"],
+        ai=agent_result,
+    )
+    return {"agent": agent_result, "log": log, "uploads": uploads, "tolerances": tolerances}
+
+
+@app.post("/match/explain", response_class=HTMLResponse)
+async def match_explain(
+    request: Request,
+    po_file: UploadFile = File(...),
+    grn_file: UploadFile = File(...),
+    invoice_file: UploadFile = File(...),
+    price_tolerance: str = Form("0.01"),
+    qty_tolerance: str = Form("0"),
+    total_tolerance: str = Form("0.05"),
+    line_total_tolerance: str = Form("0.01"),
+):
+    lang_code = _lang_from(request)
+    try:
+        out = await _explain(
+            request, lang_code,
+            {"po_file": po_file, "grn_file": grn_file, "invoice_file": invoice_file},
+            {"price_tolerance": price_tolerance, "qty_tolerance": qty_tolerance,
+             "total_tolerance": total_tolerance, "line_total_tolerance": line_total_tolerance},
+        )
+    except (UploadRejected, ParseError) as e:
+        return templates.TemplateResponse(
+            request, "index.html", _ctx(request, error=str(e)), status_code=400,
+        )
+
+    agent_result, uploads, tolerances = out["agent"], out["uploads"], out["tolerances"]
+    return templates.TemplateResponse(
+        request,
+        "result.html",
+        _ctx(request,
+             report=agent_result["report"],
+             ai_report=agent_result["ai_report"],
+             narrative=agent_result["narrative"],
+             ai=agent_result,
+             user_tolerances=tolerances,
+             audit_log_json=audit_log_json(out["log"]),
+             filenames={"po": uploads["PO"][2], "grn": uploads["GRN"][2],
+                        "invoice": uploads["INVOICE"][2]},
+             rerun_action="/match/explain",
+             rerun_files=[
+                 {"field": field, "filename": name,
+                  "content": base64.b64encode(data).decode("ascii")}
+                 for field, data, name in uploads.values()
+             ],
+             rerun_tolerances=tolerances),
+    )
+
+
+@app.post("/api/match/explain")
+async def match_explain_api(
+    request: Request,
+    po_file: UploadFile = File(...),
+    grn_file: UploadFile = File(...),
+    invoice_file: UploadFile = File(...),
+    price_tolerance: str = Form("0.01"),
+    qty_tolerance: str = Form("0"),
+    total_tolerance: str = Form("0.05"),
+    line_total_tolerance: str = Form("0.01"),
+    lang: str = Form(None),
+):
+    lang_code = lang if lang in available_langs() else _lang_from(request)
+    try:
+        out = await _explain(
+            request, lang_code,
+            {"po_file": po_file, "grn_file": grn_file, "invoice_file": invoice_file},
+            {"price_tolerance": price_tolerance, "qty_tolerance": qty_tolerance,
+             "total_tolerance": total_tolerance, "line_total_tolerance": line_total_tolerance},
+        )
+    except (UploadRejected, ParseError) as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return JSONResponse(out["log"])  # ai_report is inside ai_tool_calls[1]
 
 
 @app.get("/sample/{name}")

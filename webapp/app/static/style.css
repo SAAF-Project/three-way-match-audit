@@ -23,6 +23,8 @@
   --page-bg:   light-dark(#FAF9F5, #171714);
   --surface:   light-dark(#FFFFFF, #22211E);
   --surface-alt: light-dark(#FBFAF6, #1D1C19);
+  --pur-dark:  light-dark(#7B4FA6, #C9A7EA);
+  --pur-light: light-dark(#F0EBF8, #2E2338);
 }
 
 /* An explicit choice (the theme cookie) overrides the system setting. */
@@ -497,3 +499,145 @@ footer.bot {
 /* Formerly inline styles; moved here so the CSP can forbid inline styles. */
 .formats-text { color: var(--text-sec); font-size: 13px; margin: 0; }
 .line-desc { color: var(--text-sec); font-size: 11px; }
+
+/* --- AI review (services/agent.py) --- */
+
+/* Unified verdict card — AI summary shown inline */
+.verdict-card .verdict-summary {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.verdict-card.MATCH .verdict-summary   { color: var(--grn-dark); }
+.verdict-card.WARNING .verdict-summary { color: var(--amb-dark); }
+.verdict-card.FAIL .verdict-summary    { color: var(--red-dark); }
+
+.badge.HIGH   { background: var(--red-light); color: var(--red-dark); }
+.badge.MEDIUM { background: var(--amb-light); color: var(--amb-dark); }
+.badge.LOW    { background: var(--blu-light); color: var(--blu-dark); }
+.badge.CLEAR  { background: var(--grn-light); color: var(--grn-dark); }
+
+/* Tolerance comparison — two runs side by side */
+.tol-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+@media (max-width: 600px) { .tol-comparison { grid-template-columns: 1fr; } }
+.tol-card {
+  background: var(--surface);
+  border: 1px solid var(--gray-line);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+.tol-card h4 {
+  margin: 0 0 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-hint);
+  font-weight: 600;
+}
+.tol-card dl {
+  margin: 0 0 10px;
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 4px 8px;
+  font-size: 12px;
+}
+.tol-card dt { color: var(--text-hint); }
+.tol-card dd { margin: 0; font-weight: 500; color: var(--text-pri); }
+.tol-counts {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.tol-count {
+  flex: 1;
+  border-radius: 5px;
+  padding: 8px 6px;
+  text-align: center;
+}
+.tol-count.match { background: var(--grn-light); }
+.tol-count.warn  { background: var(--amb-light); }
+.tol-count.fail  { background: var(--red-light); }
+.tol-count .n {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+.tol-count.match .n { color: var(--grn-dark); }
+.tol-count.warn  .n { color: var(--amb-dark); }
+.tol-count.fail  .n { color: var(--red-dark); }
+.tol-count .lbl {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-hint);
+  margin-top: 2px;
+}
+.tol-rationale {
+  background: var(--gray-bg);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text-sec);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* Patterns alert block */
+.patterns-block { background: var(--pur-light); border-color: var(--pur-dark); }
+.patterns-block h4 { color: var(--pur-dark); }
+
+/* AI recommendation inline in line table */
+.ai-rec {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-sec);
+  line-height: 1.4;
+}
+
+/* Action banner — AI overall recommendation */
+.action-banner {
+  background: var(--blu-solid);
+  color: #FFFFFF;
+  border-radius: 6px;
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.audit-trail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 24px;
+  flex-wrap: wrap;
+}
+.download-link {
+  display: inline-block;
+  background: var(--blu-solid);
+  color: #FFFFFF;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.download-link:hover { background: var(--blu-solid-hover); }
+.audit-trail-note {
+  font-size: 11px;
+  color: var(--text-hint);
+}
+
+/* AI review: classes for what used to be inline styles (the CSP forbids those). */
+.badge-inline { vertical-align: middle; margin-left: 12px; }
+.badge-run    { margin-top: 10px; display: inline-block; }
+.badge-small  { font-size: 9px; display: inline-block; margin-bottom: 4px; }
+.muted-dash   { color: var(--text-hint); }

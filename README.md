@@ -35,7 +35,8 @@ Sample/test data for the legacy script lives in `tools/scripts/data/p2p/`; sampl
 
 - Python 3.12 for `webapp/` (the version CI tests on).
 - Dependencies are pinned in [`webapp/requirements.txt`](./webapp/requirements.txt); install and run steps are in [`webapp/README.md`](./webapp/README.md).
-- No API keys or accounts are needed: the webapp on `master` makes no model calls. Open PR #13 adds a Gemini-based agent to the webapp; if that is merged, its key must come from an environment variable, and a model and data-residency note must be added here.
+- No API key is needed for the match itself. The optional advisory AI review uses the Google Gemini API (model `gemini-flash-lite-latest`) and runs only when the environment variable `GEMINI_API_KEY` is set; without it nothing is sent.
+- **Data residency:** with a key set, the parsed PO, goods-receipt and invoice data and the match result are sent to Google. The page footer and the downloadable audit trail say whether that happened. On the unpaid Gemini tier, Google's terms allow it to use submitted content to improve its products, so use a paid key — or no key — for real supplier data.
 - TODO(owner): list the Python packages needed by the legacy script `tools/scripts/generate_audit_report.py` (its docstring names `reportlab` and `matplotlib`), or mark that script as unsupported.
 
 ## Install and run
