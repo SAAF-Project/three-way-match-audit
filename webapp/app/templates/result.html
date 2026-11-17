@@ -35,6 +35,19 @@
       {% endif %}
     </div>
 
+    {% if ai and ai.status != "ok" %}
+      <div class="header-issues ai-status">
+        <h4>AI-beoordeling niet beschikbaar</h4>
+        <p>
+          {% if ai.status == "rejected" %}Het AI-antwoord is afgekeurd en wordt niet getoond:
+          {% elif ai.status == "unavailable" %}De AI-dienst gaf geen bruikbaar antwoord:
+          {% else %}AI staat uit op deze server:{% endif %}
+          <code>{{ ai.reason }}</code>
+        </p>
+        <p>Het oordeel hierboven is de regelgebaseerde match met uw toleranties en staat los van de AI.</p>
+      </div>
+    {% endif %}
+
     <div class="summary-grid">
       <div class="summary-tile match">
         <div class="n">{{ r.summary.MATCH }}</div>
@@ -197,14 +210,20 @@
         <a class="download-link" href="data:application/json;charset=utf-8,{{ audit_log_json | urlencode }}" download="audit_trail.json">
           ↓ Download audittrail (JSON)
         </a>
-        <span class="audit-trail-note">Bevat SHA-256 hashes van de invoerbestanden, matchresultaat en AI-aanbevelingen voor heruitvoering.</span>
+        <span class="audit-trail-note">Bevat SHA-256 hashes van de invoerbestanden, het matchresultaat, de AI-status en (indien gevalideerd) de AI-aanbevelingen voor heruitvoering.</span>
       </div>
     {% endif %}
 
     <a href="/" class="back-link">← Nieuwe match uitvoeren</a>
 
     <footer class="bot">
-      SAAF · Three-way Match Audit · Werkt lokaal — geen bestanden verlaten je machine.
+      SAAF · Three-way Match Audit ·
+      {% if ai and ai.data_sent %}
+        Voor de AI-beoordeling zijn de geparste PO-, GRN- en factuurgegevens en het matchresultaat
+        verstuurd naar {{ ai.provider }} (model {{ ai.model }}).
+      {% else %}
+        Er zijn geen gegevens naar een externe AI-dienst verstuurd.
+      {% endif %}
     </footer>
   </div>
 </body>

@@ -1,7 +1,6 @@
 """FastAPI application for the Three-way Match webapp."""
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -9,8 +8,8 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.services.agent import run_audit_agent
-from app.services.audit_log import build as build_audit_log
+from app.services.agent import ai_enabled, run_audit_agent
+from app.services.audit_log import build as build_audit_log, to_json as audit_log_json
 from app.services.matcher import three_way_match
 from app.services.parsers import ParseError, parse_document
 
@@ -35,7 +34,7 @@ templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse(request, "index.html", {})
+    return templates.TemplateResponse(request, "index.html", {"ai_enabled": ai_enabled()})
 
 
 @app.post("/match", response_class=HTMLResponse)
@@ -54,7 +53,7 @@ async def match(
         inv = parse_document(await _read_limited(invoice_file), invoice_file.filename or "invoice", "INVOICE")
     except ParseError as e:
         return templates.TemplateResponse(
-            request, "index.html", {"error": str(e)}, status_code=400,
+            request, "index.html", {"error": str(e), "ai_enabled": ai_enabled()}, status_code=400,
         )
 
     report = three_way_match(
@@ -130,29 +129,18 @@ async def match_explain(
         inv = parse_document(inv_bytes, invoice_file.filename or "invoice", "INVOICE")
     except ParseError as e:
         return templates.TemplateResponse(
-            request, "index.html", {"error": str(e)}, status_code=400,
+            request, "index.html", {"error": str(e), "ai_enabled": ai_enabled()}, status_code=400,
         )
 
-    # The AI agent calls the matcher as a tool — it drives the entire workflow
+    # Run 1 (authoritative) is computed in Python with the user's tolerances;
+    # the AI part is advisory and reports its own status.
     agent_result = run_audit_agent(
         po, grn, inv, price_tolerance, qty_tolerance, total_tolerance,
     )
-    if agent_result:
-        report_dict = agent_result["report"]
-        ai_report   = agent_result["ai_report"]
-        narrative   = agent_result["narrative"]
-        tool_calls  = agent_result["tool_calls"]
-    else:
-        # Fallback: rule-based only (no API key or agent error)
-        report_dict = three_way_match(
-            po, grn, inv,
-            price_tolerance=price_tolerance,
-            qty_tolerance=qty_tolerance,
-            total_tolerance=total_tolerance,
-        ).to_dict()
-        ai_report  = None
-        narrative  = None
-        tool_calls = []
+    report_dict = agent_result["report"]
+    ai_report   = agent_result["ai_report"]
+    narrative   = agent_result["narrative"]
+    tool_calls  = agent_result["tool_calls"]
 
     log = build_audit_log(
         po_bytes=po_bytes, grn_bytes=grn_bytes, invoice_bytes=inv_bytes,
@@ -165,6 +153,7 @@ async def match_explain(
         match_report=report_dict,
         audit_narrative=narrative,
         tool_calls=tool_calls,
+        ai=agent_result,
     )
 
     return templates.TemplateResponse(
@@ -173,12 +162,13 @@ async def match_explain(
             "report":          report_dict,
             "ai_report":       ai_report,
             "narrative":       narrative,
+            "ai":              agent_result,
             "user_tolerances": {
                 "price":   price_tolerance,
                 "qty":     qty_tolerance,
                 "total":   total_tolerance,
             },
-            "audit_log_json":  json.dumps(log, indent=2, ensure_ascii=False),
+            "audit_log_json":  audit_log_json(log),
             "filenames": {
                 "po":      po_file.filename,
                 "grn":     grn_file.filename,
@@ -210,19 +200,9 @@ async def match_explain_api(
     agent_result = run_audit_agent(
         po, grn, inv, price_tolerance, qty_tolerance, total_tolerance,
     )
-    if agent_result:
-        report_dict = agent_result["report"]
-        narrative   = agent_result["narrative"]
-        tool_calls  = agent_result["tool_calls"]
-    else:
-        report_dict = three_way_match(
-            po, grn, inv,
-            price_tolerance=price_tolerance,
-            qty_tolerance=qty_tolerance,
-            total_tolerance=total_tolerance,
-        ).to_dict()
-        narrative  = None
-        tool_calls = []
+    report_dict = agent_result["report"]
+    narrative   = agent_result["narrative"]
+    tool_calls  = agent_result["tool_calls"]
 
     log = build_audit_log(
         po_bytes=po_bytes, grn_bytes=grn_bytes, invoice_bytes=inv_bytes,
@@ -235,5 +215,6 @@ async def match_explain_api(
         match_report=report_dict,
         audit_narrative=narrative,
         tool_calls=tool_calls,
+        ai=agent_result,
     )
     return JSONResponse(log)  # ai_report is inside tool_calls[1] in the audit log

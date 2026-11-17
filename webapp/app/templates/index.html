@@ -82,7 +82,15 @@
     </p>
 
     <footer class="bot">
-      SAAF · Three-way Match Audit · Werkt lokaal — geen bestanden verlaten je machine.
+      SAAF · Three-way Match Audit ·
+      {% if ai_enabled %}
+        Let op: bij "Match uitvoeren" worden de geparste PO-, GRN- en factuurgegevens naar de
+        Google Gemini API gestuurd voor een adviserende AI-beoordeling. Het oordeel zelf blijft
+        de regelgebaseerde match met uw toleranties.
+      {% else %}
+        AI staat uit op deze server: bestanden worden alleen hier verwerkt en niet naar een
+        externe dienst gestuurd.
+      {% endif %}
     </footer>
   </div>
 </body>
