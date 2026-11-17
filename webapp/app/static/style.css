@@ -493,3 +493,7 @@ footer.bot {
   font-size: 11px;
   text-align: center;
 }
+
+/* Formerly inline styles; moved here so the CSP can forbid inline styles. */
+.formats-text { color: var(--text-sec); font-size: 13px; margin: 0; }
+.line-desc { color: var(--text-sec); font-size: 11px; }

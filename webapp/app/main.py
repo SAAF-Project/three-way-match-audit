@@ -2,22 +2,27 @@
 from __future__ import annotations
 
 import base64
-import json
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.i18n import available as available_langs, default_lang, get_lang
-from app.services.matcher import three_way_match
+from app.security import (
+    MAX_UPLOAD_BYTES,
+    BodySizeLimitMiddleware,
+    SecurityHeadersMiddleware,
+    is_https,
+)
+from app.services.matcher import MAX_TOLERANCE, three_way_match, validate_tolerance
 from app.services.parsers import ParseError, parse_document
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
-SAMPLE_DIR = BASE_DIR.parent / "sample_data"
+SAMPLE_DIR = (BASE_DIR.parent / "sample_data").resolve()
 
 LANG_COOKIE = "lang"
 LANG_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # one year
@@ -25,9 +30,29 @@ LANG_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # one year
 THEME_COOKIE = "theme"  # written client-side by static/theme.js
 THEMES = ("light", "dark")
 
-app = FastAPI(title="Three-way Match Audit", version="0.1.0")
+# MIME types a browser or HTTP client may send for a .csv or .json upload.
+# Windows labels CSV files as application/vnd.ms-excel; a re-posted File()
+# without a type arrives as application/octet-stream. The type is only a
+# claim: parsers.parse_document() also checks the bytes themselves.
+ALLOWED_UPLOAD_TYPES = frozenset({
+    "", "text/csv", "application/csv", "text/comma-separated-values",
+    "application/vnd.ms-excel", "text/plain", "application/json", "text/json",
+    "application/octet-stream",
+})
+
+MAX_FILENAME_LENGTH = 255
+
+app = FastAPI(title="Three-way Match Audit", version="0.2.0",
+              docs_url=None, redoc_url=None, openapi_url=None)
+# The last one added runs first: headers wrap everything, including a 413.
+app.add_middleware(BodySizeLimitMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+
+
+class UploadRejected(Exception):
+    """An upload or form value failed validation; the message is shown to the user."""
 
 
 def _lang_from(request: Request) -> str:
@@ -54,24 +79,71 @@ def _ctx(request: Request, **extra) -> dict:
             **extra}
 
 
+def _safe_filename(upload: UploadFile, fallback: str) -> str:
+    """The client-supplied name, reduced to its last path part and a sane
+    length. It is only displayed (escaped) and used for the extension."""
+    name = (upload.filename or "").replace("\\", "/").rsplit("/", 1)[-1].strip()
+    name = "".join(c for c in name if c.isprintable())
+    return name[-MAX_FILENAME_LENGTH:] or fallback
+
+
+async def _read_upload(upload: UploadFile, fallback: str, t: dict) -> tuple[bytes, str]:
+    name = _safe_filename(upload, fallback)
+    content_type = (upload.content_type or "").split(";")[0].strip().lower()
+    if content_type not in ALLOWED_UPLOAD_TYPES:
+        raise UploadRejected(t["ui"]["error_file_type"].format(name=name, type=content_type))
+    data = await upload.read(MAX_UPLOAD_BYTES + 1)
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise UploadRejected(t["ui"]["error_too_large"].format(
+            name=name, max_mb=f"{MAX_UPLOAD_BYTES / 1024 / 1024:g}"))
+    return data, name
+
+
+def _tolerances(t: dict, **raw: str) -> dict[str, float]:
+    try:
+        return {name: validate_tolerance(name, value) for name, value in raw.items()}
+    except ValueError:
+        raise UploadRejected(t["ui"]["error_tolerance"].format(max=f"{MAX_TOLERANCE:g}"))
+
+
+async def _run_match(request: Request, lang_code: str, files: dict[str, UploadFile],
+                     tolerance_form: dict[str, str]):
+    """Validate the request, parse the three documents and match them.
+    Raises UploadRejected or ParseError with a message for the user."""
+    t = get_lang(lang_code)
+    tolerances = _tolerances(t, **tolerance_form)
+    uploads = {}
+    for doc_type, (field, upload) in zip(("PO", "GRN", "INVOICE"), files.items()):
+        data, name = await _read_upload(upload, field, t)
+        uploads[doc_type] = (field, data, name)
+    docs = {doc_type: parse_document(data, name, doc_type)
+            for doc_type, (_, data, name) in uploads.items()}
+    report = three_way_match(docs["PO"], docs["GRN"], docs["INVOICE"],
+                             messages=t.get("msg"), **tolerances)
+    return report, uploads, tolerances
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", _ctx(request))
+    return templates.TemplateResponse(request, "index.html", _ctx(request))
 
 
 @app.get("/lang/{code}")
 async def set_lang(code: str, request: Request, next: str = "/"):
     """Persist the language choice in a cookie and bounce back where the
-    user came from. Rejects unknown codes and keeps `next` relative so an
+    user came from. Rejects unknown codes and keeps `next` a local path so an
     attacker-controlled URL can't be used as an open redirect."""
     if code not in available_langs():
         return JSONResponse({"error": "Unknown language."}, status_code=400)
-    target = next if next.startswith("/") and not next.startswith("//") else "/"
-    resp = RedirectResponse(target, status_code=303)
+    local = (next.startswith("/") and not next.startswith("//")
+             and "\\" not in next and all(c.isprintable() for c in next))
+    resp = RedirectResponse(next if local else "/", status_code=303)
     resp.set_cookie(
         LANG_COOKIE, code,
-        max_age=LANG_COOKIE_MAX_AGE,
-        httponly=False, samesite="lax",
+        max_age=LANG_COOKIE_MAX_AGE, path="/",
+        # Not HttpOnly: static/result_lang.js sets it too. It holds only a
+        # language code, which the server validates on every read.
+        httponly=False, samesite="lax", secure=is_https(request),
     )
     return resp
 
@@ -89,60 +161,39 @@ async def match(
     po_file: UploadFile = File(...),
     grn_file: UploadFile = File(...),
     invoice_file: UploadFile = File(...),
-    price_tolerance: float = Form(0.01),
-    qty_tolerance: float = Form(0.0),
-    total_tolerance: float = Form(0.05),
-    line_total_tolerance: float = Form(0.01),
+    price_tolerance: str = Form("0.01"),
+    qty_tolerance: str = Form("0"),
+    total_tolerance: str = Form("0.05"),
+    line_total_tolerance: str = Form("0.01"),
 ):
-    po_bytes = await po_file.read()
-    grn_bytes = await grn_file.read()
-    inv_bytes = await invoice_file.read()
+    lang_code = _lang_from(request)
     try:
-        po = parse_document(po_bytes, po_file.filename or "po", "PO")
-        grn = parse_document(grn_bytes, grn_file.filename or "grn", "GRN")
-        inv = parse_document(inv_bytes, invoice_file.filename or "invoice", "INVOICE")
-    except ParseError as e:
+        report, uploads, tolerances = await _run_match(
+            request, lang_code,
+            {"po_file": po_file, "grn_file": grn_file, "invoice_file": invoice_file},
+            {"price_tolerance": price_tolerance, "qty_tolerance": qty_tolerance,
+             "total_tolerance": total_tolerance, "line_total_tolerance": line_total_tolerance},
+        )
+    except (UploadRejected, ParseError) as e:
         return templates.TemplateResponse(
-            "index.html",
-            _ctx(request, error=str(e)),
-            status_code=400,
+            request, "index.html", _ctx(request, error=str(e)), status_code=400,
         )
 
-    lang_dict = get_lang(_lang_from(request))
-    report = three_way_match(
-        po, grn, inv,
-        price_tolerance=price_tolerance,
-        qty_tolerance=qty_tolerance,
-        total_tolerance=total_tolerance,
-        line_total_tolerance=line_total_tolerance,
-        messages=lang_dict.get("msg"),
-    )
-
     return templates.TemplateResponse(
+        request,
         "result.html",
         _ctx(request,
              report=report.to_dict(),
-             filenames={
-                "po": po_file.filename,
-                "grn": grn_file.filename,
-                "invoice": invoice_file.filename,
-             },
+             filenames={"po": uploads["PO"][2], "grn": uploads["GRN"][2],
+                        "invoice": uploads["INVOICE"][2]},
              # Sent back by static/result_lang.js to re-run the match in
              # another language; nothing is kept on the server.
              rerun_files=[
-                {"field": "po_file", "filename": po_file.filename or "po",
-                 "content": base64.b64encode(po_bytes).decode("ascii")},
-                {"field": "grn_file", "filename": grn_file.filename or "grn",
-                 "content": base64.b64encode(grn_bytes).decode("ascii")},
-                {"field": "invoice_file", "filename": invoice_file.filename or "invoice",
-                 "content": base64.b64encode(inv_bytes).decode("ascii")},
+                 {"field": field, "filename": name,
+                  "content": base64.b64encode(data).decode("ascii")}
+                 for field, data, name in uploads.values()
              ],
-             rerun_tolerances={
-                "price_tolerance": price_tolerance,
-                "qty_tolerance": qty_tolerance,
-                "total_tolerance": total_tolerance,
-                "line_total_tolerance": line_total_tolerance,
-             }),
+             rerun_tolerances=tolerances),
     )
 
 
@@ -152,35 +203,33 @@ async def match_api(
     po_file: UploadFile = File(...),
     grn_file: UploadFile = File(...),
     invoice_file: UploadFile = File(...),
-    price_tolerance: float = Form(0.01),
-    qty_tolerance: float = Form(0.0),
-    total_tolerance: float = Form(0.05),
-    line_total_tolerance: float = Form(0.01),
+    price_tolerance: str = Form("0.01"),
+    qty_tolerance: str = Form("0"),
+    total_tolerance: str = Form("0.05"),
+    line_total_tolerance: str = Form("0.01"),
     lang: str = Form(None),
 ):
-    try:
-        po = parse_document(await po_file.read(), po_file.filename or "po", "PO")
-        grn = parse_document(await grn_file.read(), grn_file.filename or "grn", "GRN")
-        inv = parse_document(await invoice_file.read(), invoice_file.filename or "invoice", "INVOICE")
-    except ParseError as e:
-        return JSONResponse({"error": str(e)}, status_code=400)
-
     lang_code = lang if lang in available_langs() else _lang_from(request)
-    report = three_way_match(
-        po, grn, inv,
-        price_tolerance=price_tolerance,
-        qty_tolerance=qty_tolerance,
-        total_tolerance=total_tolerance,
-        line_total_tolerance=line_total_tolerance,
-        messages=get_lang(lang_code).get("msg"),
-    )
-    return report.to_dict()
+    try:
+        report, _, _ = await _run_match(
+            request, lang_code,
+            {"po_file": po_file, "grn_file": grn_file, "invoice_file": invoice_file},
+            {"price_tolerance": price_tolerance, "qty_tolerance": qty_tolerance,
+             "total_tolerance": total_tolerance, "line_total_tolerance": line_total_tolerance},
+        )
+    except (UploadRejected, ParseError) as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return JSONResponse(report.to_dict())
 
 
 @app.get("/sample/{name}")
 async def sample(name: str):
-    path = SAMPLE_DIR / name
-    if not path.exists() or not path.is_file() or path.parent != SAMPLE_DIR:
+    """Serve one of the bundled sample files, and nothing else."""
+    allowed = {p.name: p for p in SAMPLE_DIR.iterdir()
+               if p.is_file() and p.suffix in (".csv", ".json")}
+    path = allowed.get(name)
+    if path is None or not path.resolve().is_relative_to(SAMPLE_DIR):
         return JSONResponse({"error": "Voorbeeldbestand niet gevonden."}, status_code=404)
-    media = "application/json" if name.endswith(".json") else "text/csv"
-    return HTMLResponse(path.read_text(encoding="utf-8"), media_type=media)
+    media = "application/json" if path.suffix == ".json" else "text/csv"
+    return Response(path.read_bytes(), media_type=f"{media}; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{path.name}"'})

@@ -49,7 +49,7 @@
         <div class="lbl">{{ t.ui.summary_fail }}</div>
       </div>
       <div class="summary-tile total">
-        <div class="n">€{{ "%.2f"|format(r.totals_discrepancy) }}</div>
+        <div class="n">{% if r.totals_discrepancy is not none %}€{{ "%.2f"|format(r.totals_discrepancy) }}{% else %}—{% endif %}</div>
         <div class="lbl">{{ t.ui.summary_discrepancy }}</div>
       </div>
     </div>
@@ -103,7 +103,7 @@
             <td>{{ l.line_number }}</td>
             <td>
               <strong>{{ l.sku or "—" }}</strong><br>
-              <span style="color: var(--text-sec); font-size: 11px;">{{ l.description }}</span>
+              <span class="line-desc">{{ l.description }}</span>
               {% if l.issues %}
                 <ul class="issues-list">
                   {% for i in l.issues %}<li class="{{ cls }}">{{ i }}</li>{% endfor %}

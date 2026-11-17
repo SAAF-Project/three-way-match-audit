@@ -16,7 +16,7 @@
       event.preventDefault();
       if (link.classList.contains("active")) return;
       form.querySelectorAll('input[type="file"]').forEach(restoreFile);
-      document.cookie = `lang=${link.dataset.lang}; max-age=${ONE_YEAR}; path=/; samesite=lax`;
+      document.cookie = `lang=${link.dataset.lang}; max-age=${ONE_YEAR}; path=/; samesite=lax${location.protocol === "https:" ? "; secure" : ""}`;
       form.submit();
     });
   });
