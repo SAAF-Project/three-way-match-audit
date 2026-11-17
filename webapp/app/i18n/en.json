@@ -7,6 +7,7 @@
     "header_badge_result": "P2P AUDIT · 3-WAY MATCH · RESULT",
     "header_right": "Internal use",
     "lang_switch_aria": "Switch language",
+    "theme_switch_aria": "Switch between light and dark theme",
     "footer_text": "SAAF · Three-way Match Audit · Runs locally — files never leave your machine.",
 
     "upload_title": "Run a 3-way match",

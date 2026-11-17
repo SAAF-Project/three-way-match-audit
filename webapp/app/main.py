@@ -1,6 +1,7 @@
 """FastAPI application for the Three-way Match webapp."""
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 
@@ -20,6 +21,9 @@ SAMPLE_DIR = BASE_DIR.parent / "sample_data"
 
 LANG_COOKIE = "lang"
 LANG_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # one year
+
+THEME_COOKIE = "theme"  # written client-side by static/theme.js
+THEMES = ("light", "dark")
 
 app = FastAPI(title="Three-way Match Audit", version="0.1.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -44,8 +48,10 @@ def _ctx(request: Request, **extra) -> dict:
     """Base template context — always carries the i18n dict and lang code."""
     lang = _lang_from(request)
     languages = [{"code": c, "label": get_lang(c)["lang_label"]} for c in available_langs()]
+    theme = request.cookies.get(THEME_COOKIE)
     return {"request": request, "lang": lang, "t": get_lang(lang),
-            "languages": languages, **extra}
+            "languages": languages, "theme": theme if theme in THEMES else None,
+            **extra}
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -70,6 +76,13 @@ async def set_lang(code: str, request: Request, next: str = "/"):
     return resp
 
 
+@app.get("/match")
+async def match_get():
+    """Results only exist as the response to a POST; a GET (refresh of the
+    URL, language switch without JavaScript) starts over at the upload page."""
+    return RedirectResponse("/", status_code=303)
+
+
 @app.post("/match", response_class=HTMLResponse)
 async def match(
     request: Request,
@@ -81,10 +94,13 @@ async def match(
     total_tolerance: float = Form(0.05),
     line_total_tolerance: float = Form(0.01),
 ):
+    po_bytes = await po_file.read()
+    grn_bytes = await grn_file.read()
+    inv_bytes = await invoice_file.read()
     try:
-        po = parse_document(await po_file.read(), po_file.filename or "po", "PO")
-        grn = parse_document(await grn_file.read(), grn_file.filename or "grn", "GRN")
-        inv = parse_document(await invoice_file.read(), invoice_file.filename or "invoice", "INVOICE")
+        po = parse_document(po_bytes, po_file.filename or "po", "PO")
+        grn = parse_document(grn_bytes, grn_file.filename or "grn", "GRN")
+        inv = parse_document(inv_bytes, invoice_file.filename or "invoice", "INVOICE")
     except ParseError as e:
         return templates.TemplateResponse(
             "index.html",
@@ -110,7 +126,23 @@ async def match(
                 "po": po_file.filename,
                 "grn": grn_file.filename,
                 "invoice": invoice_file.filename,
-            }),
+             },
+             # Sent back by static/result_lang.js to re-run the match in
+             # another language; nothing is kept on the server.
+             rerun_files=[
+                {"field": "po_file", "filename": po_file.filename or "po",
+                 "content": base64.b64encode(po_bytes).decode("ascii")},
+                {"field": "grn_file", "filename": grn_file.filename or "grn",
+                 "content": base64.b64encode(grn_bytes).decode("ascii")},
+                {"field": "invoice_file", "filename": invoice_file.filename or "invoice",
+                 "content": base64.b64encode(inv_bytes).decode("ascii")},
+             ],
+             rerun_tolerances={
+                "price_tolerance": price_tolerance,
+                "qty_tolerance": qty_tolerance,
+                "total_tolerance": total_tolerance,
+                "line_total_tolerance": line_total_tolerance,
+             }),
     )
 
 

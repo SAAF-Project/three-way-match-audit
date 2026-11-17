@@ -1,28 +1,48 @@
-/* Palette — matches tools/scripts/generate_audit_report.py */
+/* Palette — light values match tools/scripts/generate_audit_report.py.
+   Each token is light-dark(<light theme>, <dark theme>). In the names,
+   -dark is the strong foreground colour and -light the soft tint, in both
+   themes. --blu-solid is the fill behind white text. */
 :root {
-  --red-dark:  #A32D2D;
-  --red-light: #FCEBEB;
-  --amb-dark:  #854F0B;
-  --amb-light: #FAEEDA;
-  --grn-dark:  #3B6D11;
-  --grn-light: #EAF3DE;
-  --blu-dark:  #185FA5;
-  --blu-light: #E6F1FB;
-  --gray-bg:   #F1EFE8;
-  --gray-line: #D3D1C7;
-  --text-pri:  #1A1A18;
-  --text-sec:  #5F5E5A;
-  --text-hint: #888780;
-  --white:     #FFFFFF;
+  color-scheme: light dark;
+
+  --red-dark:  light-dark(#A32D2D, #F2A0A0);
+  --red-light: light-dark(#FCEBEB, #3D1F1F);
+  --amb-dark:  light-dark(#854F0B, #E9B872);
+  --amb-light: light-dark(#FAEEDA, #3A2A12);
+  --grn-dark:  light-dark(#3B6D11, #A5D479);
+  --grn-light: light-dark(#EAF3DE, #25331A);
+  --blu-dark:  light-dark(#185FA5, #8FC1F2);
+  --blu-light: light-dark(#E6F1FB, #1B2F44);
+  --blu-solid: light-dark(#185FA5, #2A74BD);
+  --blu-solid-hover: light-dark(#12508B, #1F66AD);
+  --gray-bg:   light-dark(#F1EFE8, #2B2A26);
+  --gray-line: light-dark(#D3D1C7, #45443E);
+  --text-pri:  light-dark(#1A1A18, #EDECE6);
+  --text-sec:  light-dark(#5F5E5A, #B8B6AD);
+  --text-hint: light-dark(#888780, #97958C);
+  --page-bg:   light-dark(#FAF9F5, #171714);
+  --surface:   light-dark(#FFFFFF, #22211E);
+  --surface-alt: light-dark(#FBFAF6, #1D1C19);
+}
+
+/* An explicit choice (the theme cookie) overrides the system setting. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"]  { color-scheme: dark; }
+
+/* Reports always print dark-on-white, whatever the screen theme is. */
+@media print {
+  :root, :root[data-theme] { color-scheme: light; }
 }
 
 * { box-sizing: border-box; }
+
+a { color: var(--blu-dark); }
 
 body {
   margin: 0;
   font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-pri);
-  background: #FAF9F5;
+  background: var(--page-bg);
   padding-block: 32px;
   padding-inline: 24px;
 }
@@ -62,10 +82,27 @@ header.top {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--gray-line);
   border-radius: 4px;
 }
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  color: var(--text-sec);
+  background: var(--surface);
+  border: 1px solid var(--gray-line);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 100ms;
+}
+.theme-toggle:hover { color: var(--blu-dark); background: var(--blu-light); }
+.theme-toggle svg { display: block; }
 
 .lang-link {
   padding: 3px 10px;
@@ -81,7 +118,7 @@ header.top {
 .lang-link:hover { color: var(--blu-dark); background: var(--blu-light); }
 
 .lang-link.active {
-  background: var(--blu-dark);
+  background: var(--blu-solid);
   color: white;
 }
 
@@ -108,7 +145,7 @@ h1 {
 
 /* Upload form */
 form.upload {
-  background: var(--white);
+  background: var(--surface);
   border: 1px solid var(--gray-line);
   border-radius: 6px;
   padding: 24px;
@@ -129,7 +166,7 @@ form.upload {
   border: 1.5px dashed var(--gray-line);
   border-radius: 6px;
   padding: 18px;
-  background: #FBFAF6;
+  background: var(--surface-alt);
   transition: border-color 120ms, background 120ms;
   position: relative;
 }
@@ -141,7 +178,7 @@ form.upload {
   line-height: 22px;
   text-align: center;
   border-radius: 50%;
-  background: var(--blu-dark);
+  background: var(--blu-solid);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -191,7 +228,8 @@ form.upload {
   border-radius: 4px;
   font-size: 13px;
   font-family: inherit;
-  background: white;
+  color: var(--text-pri);
+  background: var(--surface);
 }
 .tol-hint {
   display: block;
@@ -217,7 +255,7 @@ form.upload {
   margin-right: 4px;
 }
 .preset {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--gray-line);
   color: var(--text-sec);
   padding: 5px 12px;
@@ -229,9 +267,9 @@ form.upload {
 }
 .preset:hover { border-color: var(--blu-dark); color: var(--blu-dark); }
 .preset.active {
-  background: var(--blu-dark);
+  background: var(--blu-solid);
   color: white;
-  border-color: var(--blu-dark);
+  border-color: var(--blu-solid);
 }
 
 .actions {
@@ -241,7 +279,7 @@ form.upload {
   flex-wrap: wrap;
 }
 button.primary {
-  background: var(--blu-dark);
+  background: var(--blu-solid);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -251,7 +289,7 @@ button.primary {
   cursor: pointer;
   font-family: inherit;
 }
-button.primary:hover { background: #12508b; }
+button.primary:hover { background: var(--blu-solid-hover); }
 
 .sample-links {
   font-size: 12px;
@@ -342,7 +380,7 @@ button.primary:hover { background: #12508b; }
 }
 @media (max-width: 720px) { .doc-meta { grid-template-columns: 1fr; } }
 .doc-meta .doc {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--gray-line);
   border-radius: 6px;
   padding: 14px 16px;
@@ -369,7 +407,7 @@ table.lines {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--gray-line);
   border-radius: 6px;
   overflow: hidden;
