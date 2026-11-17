@@ -1,0 +1,47 @@
+# Keeps the fork vvsodrs/three-way-match-audit in step with this repository.
+#
+# Every push to master here (which is what merging a PR does) asks GitHub to
+# update the fork's master from upstream, the same as the "Sync fork" button.
+# A push to the fork's master in turn triggers its Vercel deployment.
+#
+# Setup (once):
+#   1. Create a fine-grained personal access token with access to only
+#      vvsodrs/three-way-match-audit and the permissions
+#      "Contents: Read and write" and "Workflows: Read and write"
+#      (the second is needed because this file itself is synced).
+#   2. Save it in this repository as the Actions secret FORK_SYNC_TOKEN.
+#   3. Optional: set the Actions variable FORK_REPO to sync a different fork.
+
+name: Sync fork
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: sync-fork
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # The fork receives this file too; only run it in the upstream repository.
+    if: github.repository == 'SAAF-Project/three-way-match-audit'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.FORK_SYNC_TOKEN }}
+      FORK_REPO: ${{ vars.FORK_REPO || 'vvsodrs/three-way-match-audit' }}
+    steps:
+      - name: Check token
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Secret FORK_SYNC_TOKEN is not set. See the setup notes at the top of .github/workflows/sync-fork.yml."
+            exit 1
+          fi
+
+      - name: Update the fork's master from upstream
+        run: |
+          gh api --method POST "repos/$FORK_REPO/merge-upstream" -f branch=master \
+            --jq '"\(.merge_type): \(.message)"'
