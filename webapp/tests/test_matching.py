@@ -317,3 +317,21 @@ def test_too_many_lines_are_rejected():
     lines = [f"{i},SKU-{i},Item,1,1.00,1.00" for i in range(1, 5002)]
     with pytest.raises(ParseError, match="5000"):
         parse_document(inv_csv(lines), "inv.csv", "INVOICE")
+
+
+# --- CO-1 / CO-4 in AUDIT-CRITERIA.md: orphan lines are reported -----------
+def test_invoice_line_not_on_po_fails():
+    lines = PO_LINES + ["4,SKU-X999,Not ordered,1,10.00,10.00"]
+    header = INV_HEADER + "total,3390.00\n"
+    report = match(po_csv(), grn_csv(), inv_csv(lines, header=header))
+    assert report.result == "FAIL"
+    orphan = next(l for l in report.line_results if l.sku == "SKU-X999")
+    assert orphan.result == "FAIL"
+    assert any("ontbreekt op de inkooporder" in i for i in orphan.issues)
+
+
+def test_po_line_not_invoiced_is_reported():
+    report = match(po_csv(), grn_csv(), inv_csv(PO_LINES[:2]))
+    assert report.result == "FAIL"
+    missing = next(l for l in report.line_results if l.sku == "SKU-C300")
+    assert any("ontbreekt op de factuur" in i for i in missing.issues)

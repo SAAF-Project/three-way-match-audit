@@ -37,7 +37,7 @@ Sample/test data for the legacy script lives in `tools/scripts/data/p2p/`; sampl
 - Dependencies are pinned in [`webapp/requirements.txt`](./webapp/requirements.txt); install and run steps are in [`webapp/README.md`](./webapp/README.md).
 - No API key is needed for the match itself. The optional advisory AI review uses the Google Gemini API (model `gemini-flash-lite-latest`) and runs only when the environment variable `GEMINI_API_KEY` is set; without it nothing is sent.
 - **Data residency:** with a key set, the parsed PO, goods-receipt and invoice data and the match result are sent to Google. The page footer and the downloadable audit trail say whether that happened. On the unpaid Gemini tier, Google's terms allow it to use submitted content to improve its products, so use a paid key — or no key — for real supplier data.
-- TODO(owner): list the Python packages needed by the legacy script `tools/scripts/generate_audit_report.py` (its docstring names `reportlab` and `matplotlib`), or mark that script as unsupported.
+- The legacy script `tools/scripts/generate_audit_report.py` is unsupported: it needs `reportlab` and `matplotlib`, which are not pinned here, and its findings are hardcoded (see `AUDIT-CRITERIA.md` §5).
 
 ## Install and run
 
@@ -55,7 +55,7 @@ Open http://127.0.0.1:8000 and run a demo with the synthetic files in [`webapp/s
 - The output is a reconciliation aid, not an audit conclusion. MATCH / WARNING / FAIL verdicts must be reviewed by a qualified auditor before anyone acts on them.
 - Verdicts depend on the tolerances chosen on the start page or in the request (see `webapp/README.md`). Record the tolerances used with every result.
 - The legacy script `tools/scripts/generate_audit_report.py` produces hardcoded findings, names and conclusions that do not come from the input data. Do not use it for audit output (see `AUDIT-CRITERIA.md` CO-3).
-- `AUDIT-CRITERIA.md` describes the CLI implementation from the deleted `main` branch, not the webapp. The webapp has no audit criteria of its own yet.
+- `AUDIT-CRITERIA.md` lists the webapp's control objectives and acceptance criteria, each mapped to a test; CO-3.5 is still open.
 - The webapp accepts at most 1 MB and 5000 lines per file, rejects negative amounts (credit notes), and has no login or rate limiting. The full list of input checks is in [`webapp/README.md`](./webapp/README.md#invoercontrole-en-beveiliging).
 
 ## Guardrails
@@ -66,4 +66,4 @@ The code follows the SAAF command allowlist (`regulatory/guardrails/allowed-comm
 
 - License: MIT, see [`LICENSE`](./LICENSE).
 - Owners: vvsodrs and wehren, see [`CODEOWNERS`](./CODEOWNERS). They review every pull request and do the quarterly review against the SAAF standards.
-- Plan: TODO(owner): link the plan in `SAAF-Project/plans/` if one exists for this repo.
+- Plan: there is no plan for this repo in `SAAF-Project/plans/` yet. Audit criteria, coverage gaps and open items are in [`AUDIT-CRITERIA.md`](./AUDIT-CRITERIA.md).

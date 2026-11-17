@@ -1,107 +1,131 @@
-> ⚠️ **Branch mismatch notice (2026-09-15):** this document describes the CLI implementation on this repo's `main` branch (`README.md`, `requirements.txt`, `three_way_match.py`, `generate_audit_report.py`, `samples/p2p/`). **Those files do not exist on `master`.** `master` currently carries a different, older CLI script (`tools/scripts/generate_audit_report.py`, with hardcoded findings — see CO-3 below) *and*, as of today, a separate `webapp/` implementation (FastAPI, configurable tolerances, three-tier MATCH/WARNING/FAIL verdicts) that this document does not cover at all. Treat this as a placeholder for the A2 deliverable pending reconciliation of the repo's branches — do not assume the files/behavior below are runnable from `master` as-is.
+# `AUDIT-CRITERIA.md` — P2P 3-Way Match Audit
 
----
-
-# `AUDIT-CRITERIA.md` — P2P 3-Way Match Audit Agent
-
-> Copied and filled in from `docs/conventions/audit-criteria-template.md` in the main SAAF-Project repo.
-> This is the output of the **A2 — Audit Criteria & Controls** track (Session 6). It lives next to `README.md`: the README says what the agent does and how to run it; this document says what it must be judged against as an auditee.
-
----
+What this repository must be judged against as an auditee: its control objectives, testable acceptance criteria, and known limits. It covers the FastAPI webapp in [`webapp/`](./webapp/), which is what runs at https://three-way-match-audit.vercel.app. The legacy script `tools/scripts/generate_audit_report.py` is out of scope and must not be used for audit output (see §5).
 
 ## Metadata
 
 | Field | Value |
 |---|---|
-| **Agent** | P2P 3-Way Match Audit Agent |
-| **Repository** | https://github.com/SAAF-Project/three-way-match-audit (describes the `main` branch — see notice above) |
-| **Maintainer(s)** | wehren (wil@itriskcontrol.nl), vvsodrs — see `CODEOWNERS` |
-| **Last reviewed** | 2026-09-15 |
-| **Status** | Draft |
+| **Agent** | P2P 3-Way Match Audit |
+| **Repository** | https://github.com/SAAF-Project/three-way-match-audit (`master`, `webapp/`) |
+| **Maintainer(s)** | wehren, vvsodrs — see `CODEOWNERS` |
+| **Last reviewed** | 2026-11-17 |
+| **Status** | Reviewed — every criterion below is mapped to an automated test or marked open in §6 |
 
 ## 1. What the agent does
 
-Reconciles Procure-to-Pay transactions across three source documents — purchase order, goods receipt, and invoice — supplied as CSV exports, and renders the result as a PDF audit report. `three_way_match.py` joins `purchase_orders.csv`, `goods_receipts.csv`, and `invoices.csv` on `po_number`, checks that quantity matches exactly and unit price matches within a fixed €0.01 tolerance, and writes `match_results.json` (a PASS/FAIL status plus a findings list per PO). `generate_audit_report.py` turns that JSON into `audit_report.pdf`: an executive summary (pass-rate donut chart, KPI counts) and a per-transaction detail table with findings. It is a **deterministic reconciliation script, not an LLM-based agent** — no model inference happens at runtime, so AI-specific frameworks are intentionally not mapped below (see Coverage gaps).
+The auditor uploads a purchase order, a goods receipt and an invoice (CSV or JSON) and sets four tolerances. The webapp parses and validates the three documents, matches them line by line in deterministic Python and returns `MATCH`, `WARNING` or `FAIL` per line and overall, with the findings behind each verdict. Optionally, when `GEMINI_API_KEY` is set, Google Gemini adds an advisory review on top; it cannot change the verdict. The output supports the auditor's test of the 3-way match control; it is not an audit conclusion.
 
 ## 2. Control objectives & framework mapping
 
 | Control objective | Framework + clause/area | Why relevant |
 |---|---|---|
-| **CO-1** — Completeness: every PO, GR, and invoice in the input is included in the matched population and reported, none silently dropped | IIA Standard 2320 (Analysis & Evaluation); COSO 2013 Control Activities (CC10 — completeness of transaction processing) | An audit conclusion is only as good as the population it covers; a document missing from `match_results.json` or the PDF understates risk without anyone noticing. |
-| **CO-2** — Quantity and price discrepancies between PO, GR, and invoice are detected and disclosed within a stated tolerance | COSO 2013 Control Activities (CC10.3); SAAF domain taxonomy §9 Procure-to-Pay (`docs/reference/domains-and-frameworks.md`); SOx ICFR | This is the actual control the agent claims to test — 3-way match is a standard ICFR control preventing over-, duplicate, or fraudulent payment. |
-| **CO-3** — Every reported finding and figure is traceable to, and reproducible from, the supplied input files; nothing in the output is fabricated or hardcoded | IIA Standard 2330 (Documenting Information); ISAE 3000 (sufficient appropriate evidence) | This repo's `master`-branch copy of `generate_audit_report.py` (`tools/scripts/generate_audit_report.py`) ships **hardcoded findings, a fixed auditor name, and a fixed conclusion regardless of input data**. This objective exists specifically to keep the `main`-branch implementation from regressing to that. |
-| **CO-4** — Orphaned documents (a PO, GR, or invoice with no counterpart) are surfaced as findings, never silently passed or dropped | COSO Fraud Risk Management Guide; Internal Control — Segregation of Duties in P2P | An invoice with no PO, or a PO with no goods receipt, is a classic unauthorized-purchase / unrecorded-liability red flag; auditors expect these on the exceptions list, not omitted from it. |
-| **CO-5** — Confidentiality and availability of the vendor and pricing data the agent processes | ISO 27001 Annex A (A.5.12 Classification of information, A.8.24 Cryptography) — applied narrowly, see Coverage gaps | Purchase prices and vendor identities are commercially sensitive. Today's `main`-branch tool is fully offline and local; that property must be preserved deliberately, not by accident, as the agent evolves — note that `master`'s separate `webapp/` implementation is a network service and would need this control re-assessed on its own terms (out of scope for this document — see notice above). |
-
-*Framework menu: ISO 27001 · GDPR · DORA · NIS2 · EU AI Act · COSO · COBIT · SOx (ICFR) · IIA Standards · OWASP (LLM/AI). Full catalogue: `docs/reference/domains-and-frameworks.md`.*
+| **CO-1** — Completeness: every line on the PO, goods receipt and invoice is in the result; nothing is silently dropped or truncated | IIA Global Internal Audit Standards, Domain IV (performing engagements: analysis and evaluation); COSO 2013, Control Activities | A missing line understates risk without anyone noticing. |
+| **CO-2** — Quantity, price and amount discrepancies are detected within the stated tolerances, and input that would hide one is rejected or fails | COSO 2013, Control Activities; SOx (ICFR) — Procure-to-Pay | The 3-way match is the ICFR control against over-, duplicate and fraudulent payment; an evasion that turns a mismatch into `MATCH` defeats it. |
+| **CO-3** — The verdict is reproducible from the inputs and parameters, and the advisory AI cannot alter or contradict it | IIA Global Internal Audit Standards, Domain IV (documenting engagements); ISAE 3000 (sufficient appropriate evidence); EU AI Act, transparency and human oversight | An auditor must be able to re-perform the result; an AI narrative must not become the evidence. |
+| **CO-4** — Uploaded documents are treated as untrusted input: they cannot inject formulas, scripts or model instructions | OWASP Top 10 for LLM Applications (prompt injection); OWASP CSV injection; ISO 27001 Annex A, secure development | Supplier documents are attacker-controlled. |
+| **CO-5** — Supplier and pricing data stay confidential: they leave the service only for the opt-in AI review, and the user is told when they do | ISO 27001 Annex A, information transfer; GDPR, transparency | Purchase prices and supplier identities are commercially sensitive. |
 
 ## 3. Acceptance criteria (testable, pass/fail)
 
 **CO-1**
-- Given *N* distinct `po_number` values across the three input CSVs combined, `match_results.json.matches` contains exactly *N* records.
-- Given a `po_number` present in only one of the three files, the agent still emits a match record for it and lists which document(s) are missing — it never silently drops it.
-- The PDF's "Transactions reviewed" KPI always equals `summary.total`, which always equals `len(matches)`.
+- [code] CO-1.1 Given an invoice line that is not on the PO, the result contains that line with `FAIL` and the finding "missing on the purchase order".
+- [code] CO-1.2 Given a PO line that is not on the invoice, the result contains that line and reports it missing on the invoice.
+- [code] CO-1.3 Given a CSV with a second block of lines after a blank row, the file is rejected instead of the second block being dropped.
+- [code] CO-1.4 Given a document with more than 5,000 lines, it is rejected instead of being truncated.
 
 **CO-2**
-- Given a GR or invoice quantity that differs from the PO quantity, the agent appends a "Quantity mismatch" / "Invoice quantity mismatch" finding and sets status `FAIL`.
-- Given an invoice unit price that differs from the PO unit price by more than the disclosed tolerance (currently €0.01, `PRICE_TOLERANCE` in `three_way_match.py`), the agent appends a "Price mismatch" finding and sets status `FAIL`.
-- Given PO, GR, and invoice values that agree exactly on quantity and within tolerance on price, the agent returns status `PASS` with an empty findings list.
+- [code] CO-2.1 Given the sample invoice with a higher unit price and a higher quantity than the PO, the overall result is `FAIL`.
+- [code] CO-2.2 Given a blank, `NaN`, `inf`, `1e309` or negative quantity or unit price, the document is rejected; passed to the matcher directly, the line is `FAIL`.
+- [code] CO-2.3 Given one SKU split over two invoice rows with different unit prices, the document is rejected; passed to the matcher directly, the line is `FAIL`.
+- [code] CO-2.4 Given a row where quantity × unit price differs from the line total, the document is rejected.
+- [code] CO-2.5 Given two alias columns for the same field with different values (`sample_data/invoice_evasion.csv`), the document is rejected.
+- [code] CO-2.6 Given an empty PO reference, supplier or document number on the invoice, the document is rejected; passed to the matcher directly, the result is `FAIL`.
+- [code] CO-2.7 Given a flat CSV whose rows name two different POs or suppliers, the document is rejected.
+- [code] CO-2.8 Given a tolerance that is negative, above 100, `NaN`, `inf` or not a number, the request is rejected.
+- [code] CO-2.9 Given an invoiced line that is not on the goods receipt, the result is `FAIL`.
 
 **CO-3**
-- Running `three_way_match.py` twice against the same three CSVs produces byte-identical `match_results.json` (no timestamps, randomness, or external calls in the matching path).
-- No string literal in `generate_audit_report.py` names a specific finding, auditor, vendor, or amount — every user-facing value in the PDF is read from `data["summary"]` or `data["matches"]`.
-- The PDF footer's generation timestamp is the only value in the report not sourced from `match_results.json`, and it is presented only as a generation timestamp, never as a data value.
+- [code] CO-3.1 Given any AI answer, Run 1 (the verdict) is computed in Python with the user's tolerances and equals the result of the rule-based `/api/match`.
+- [code] CO-3.2 Given an AI narrative whose risk level contradicts a `FAIL` verdict, or whose findings name a line that matched, the narrative is rejected and not shown.
+- [code] CO-3.3 Given AI-proposed tolerances outside [0, 1], they are clamped, and a second tool call is refused.
+- [code] CO-3.4 Given a run, the audit trail records the SHA-256 hash of each input file, the tolerances, the verdict and the AI status.
+- [llm] CO-3.5 Given an accepted AI narrative, every recommendation follows from a finding in the rule-based result.
 
 **CO-4**
-- Given a `po_number` in `purchase_orders.csv` absent from `goods_receipts.csv`, the record's findings include "No goods receipt found" and status is `FAIL` — never `PASS`.
-- Given a `po_number` in `invoices.csv` with no matching purchase order, the agent still creates a record (vendor reported as `"Unknown"`, per current code) rather than omitting the invoice from the report.
+- [code] CO-4.1 Given a text cell starting with `=`, `+`, `-` or `@`, the document is rejected.
+- [code] CO-4.2 Given an Excel, zip or PDF file renamed to `.csv`, or a disallowed MIME type, the upload is rejected.
+- [code] CO-4.3 Given a request body above 3 MB, also when chunked, the server answers 413 before parsing.
+- [code] CO-4.4 Given HTML or script in a document field or file name, the result page shows it escaped.
+- [code] CO-4.5 Given document text that tries to close or open the prompt delimiters, it is escaped before it reaches the model.
 
 **CO-5**
-- The agent makes no network calls at runtime.
-- Output files (`match_results.json`, `audit_report.pdf`) are written only to the path given on the command line / current working directory.
+- [code] CO-5.1 Given no `GEMINI_API_KEY`, no data is sent and the audit trail says so.
+- [code] CO-5.2 Given an AI run, the result page and the audit trail name the provider and model the data went to; without a key, the pages say nothing is sent.
+- [code] CO-5.3 Given any match result, the response carries `Cache-Control: no-store` and the security headers (CSP, `X-Frame-Options`, `nosniff`).
 
 ## 4. Good output / never do
 
-| A correct output MUST contain | The agent must NEVER |
-|---|---|
-| ✓ Every row traceable to a `po_number` present in the source CSVs | ✕ Hardcode findings, auditor names, or a fixed narrative conclusion instead of deriving them from `match_results.json` — **this exact defect ships today in `tools/scripts/generate_audit_report.py` on this branch** |
-| ✓ An explicit PASS/FAIL status and findings list per transaction, consistent with the tolerance rules in `three_way_match.py` | ✕ Report `PASS` for a transaction with a missing PO, GR, or invoice |
-| ✓ A summary figure (pass rate / counts) that reconciles exactly with the sum of PASS/FAIL rows in the detail table | ✕ Silently drop a `po_number` because it's absent from one of the three source files |
-| ✓ The existing reviewer disclaimer ("Findings should be reviewed and confirmed by a qualified auditor before action is taken") on every report | ✕ Hard-code credentials, API keys, or secrets (none present today — keep it that way; this offline script has no reason to ever need one) |
-| ✓ Findings conform to `outputs/schemas/finding-schema.json` if/when this agent's output is consumed by another SAAF tool | ✕ Send PO, vendor, or price data to any external network service without a documented basis |
+| # | A correct output MUST contain | # | The agent must NEVER |
+|---|---|---|---|
+| M-1 | ✓ [code] A verdict per line and overall, with the finding behind every `WARNING` and `FAIL` | N-1 | ✕ [code] Return `MATCH` when a value needed for a check is missing, non-finite or contradictory |
+| M-2 | ✓ [code] The file name in every rejection message | N-2 | ✕ [llm] Present the result as an audit conclusion with no human review |
+| M-3 | ✓ [code] The tolerances used, in the audit trail | N-3 | ✕ [code] Store uploaded files on the server |
+| M-4 | ✓ [code] Whether data was sent to an AI provider, and which | N-4 | ✕ [code] Hard-code credentials or secrets |
+| M-5 | ✓ [code] Uploaded text treated as data: escaped in HTML and in the prompt | N-5 | ✕ [llm] Follow instructions found inside the input documents |
+| M-6 | ✓ [code] The model name in the audit trail for every accepted AI narrative | N-6 | ✕ [code] Let the model change the verdict |
 
 ## 5. Coverage gaps
 
-- **This document does not match this branch.** It describes `main`'s CLI tool, not what's actually on `master` — see the notice at the top of this file. Reconciling that mismatch (merging `main` into `master`, or writing separate criteria per implementation) is itself the largest open item here.
-- **`master` now carries three unrelated implementations of "3-way match"**: the legacy `tools/scripts/generate_audit_report.py` (hardcoded findings, no matching engine), the `main`-branch CLI tool this document describes, and a newly-merged `webapp/` (FastAPI, configurable tolerances, three-tier verdicts) that has its own, not-yet-written audit criteria.
-- **No automated tests** for the `main`-branch CLI tool. There is no `tests/` directory; the only verification is a manual run against a 5-row sample. The org's own portal review (2026-06-09) already flagged `hasTests: false`, and that is still true today.
-- **Duplicate `po_number` rows are silently collapsed** in the CLI tool's matching logic (`{row["po_number"]: row for row in ...}` keeps only the last row per PO) — a partial delivery or split invoice would silently lose a row instead of raising a finding.
-- **Tolerance rules are fixed and undocumented as a control parameter** in the CLI tool: €0.01 price tolerance, 0% quantity tolerance, hardcoded with no rationale recorded. (The new `webapp/` implementation does better here — it exposes tolerances as configurable form fields.)
-- **No segregation-of-duties detection** anywhere in this repo yet — no implementation ingests who created or approved a PO or invoice.
-- **AI-specific frameworks (EU AI Act, OWASP LLM Top 10) are deliberately not mapped above.** The `main`-branch tool is a deterministic script with no LLM call in its runtime path; citing AI-specific regulatory criteria here would be citation padding, not a real control.
-- **The PDF-rendering path was verified by code read, not by execution**, in the environment used to write this document (no outbound network access to install `reportlab`/`matplotlib`). The matching engine (`three_way_match.py`, on `main`) *was* executed live.
+- No authentication and no rate limiting on the public site; each AI run with a key costs quota. A platform or proxy control is needed when the site should not be public.
+- Credit notes (negative amounts) and multi-PO invoices are not supported; they are rejected, not matched.
+- CO-3.5 has no automated check yet: whether a recommendation is supported is judged by reading the run.
+- On the unpaid Gemini tier, Google may use submitted content; with real supplier data use a paid key or no key.
+- `tools/scripts/generate_audit_report.py` produces hardcoded findings and is not covered by these criteria.
 
 ## 6. Status / validation
 
-| Acceptance criterion | Verified? | Evidence |
+Evidence is the test of that name in `webapp/tests/`, run by the `Tests` workflow on every pull request.
+
+| Criterion | Verified? | Evidence |
 |---|---|---|
-| CO-1 — record count equals distinct `po_number` count | ☑ | Ran `three_way_match.py` (on `main`) against its sample data on 2026-09-15: 5 `po_number`s in, 5 records out. |
-| CO-1 — orphan `po_number` not dropped | ☐ | Not exercised — sample data contains no orphan case. Verified by code read only. |
-| CO-2 — quantity/price mismatches detected | ☑ | Same run: 2 PASS, 3 correctly-flagged FAIL. |
-| CO-3 — deterministic output | ☑ | Ran the script twice against the same input; byte-identical output both times. |
-| CO-3 — no hardcoded content in the report generator | ☑ (`main` only) | Confirmed by code review on `main`. **Not** true of `master`'s `tools/scripts/generate_audit_report.py`. |
-| CO-4 — orphan PO/invoice handling | ☐ | Not exercised — same missing test case as CO-1. |
-| CO-5 — no network calls | ☑ | Verified by inspection — no `requests`/`urllib`/`socket` imports (CLI tool only; `webapp/` is a network service by design and is out of scope here). |
-| CO-5 — writes stay local | ☑ | Verified by code read (CLI tool only). |
+| CO-1.1 | ☑ | `test_invoice_line_not_on_po_fails` |
+| CO-1.2 | ☑ | `test_po_line_not_invoiced_is_reported` |
+| CO-1.3 | ☑ | `test_rows_after_a_blank_line_are_not_dropped` |
+| CO-1.4 | ☑ | `test_too_many_lines_are_rejected` |
+| CO-2.1 | ☑ | `test_mismatch_sample_fails` |
+| CO-2.2 | ☑ | `test_non_finite_numbers_are_rejected`, `test_negative_amounts_are_rejected`, `test_matcher_fails_on_missing_values` |
+| CO-2.3 | ☑ | `test_split_line_overpricing_is_rejected`, `test_matcher_fails_on_split_line_overpricing` |
+| CO-2.4 | ☑ | `test_line_arithmetic_is_rejected` |
+| CO-2.5 | ☑ | `test_evasion_sample_with_decoy_columns_is_rejected` |
+| CO-2.6 | ☑ | `test_empty_header_fields_are_rejected`, `test_matcher_fails_on_empty_header_fields` |
+| CO-2.7 | ☑ | `test_flat_csv_with_rows_for_two_pos_is_rejected`, `test_flat_csv_with_two_suppliers_is_rejected` |
+| CO-2.8 | ☑ | `test_tolerances_are_bounded`, `test_bad_tolerances_are_rejected` |
+| CO-2.9 | ☑ | `test_invoiced_but_not_received_fails` |
+| CO-3.1 | ☑ | `test_model_cannot_set_run1_tolerances`, `test_run1_matches_plain_rule_based_match` |
+| CO-3.2 | ☑ | `test_risk_level_contradicting_fail_is_rejected`, `test_finding_on_matching_line_is_rejected` |
+| CO-3.3 | ☑ | `test_tool_args_are_clamped`, `test_second_tool_call_is_refused` |
+| CO-3.4 | ☑ | `test_audit_log_records_transmission`, `test_without_key_nothing_is_sent` |
+| CO-3.5 | ☐ | Open: no automated check (see §5) |
+| CO-4.1 | ☑ | `test_formula_cells_are_rejected`, `test_formula_in_header_is_rejected` |
+| CO-4.2 | ☑ | `test_binary_files_renamed_to_csv_are_rejected`, `test_disallowed_mime_types_are_rejected` |
+| CO-4.3 | ☑ | `test_oversized_request_is_rejected_before_parsing`, `test_chunked_oversized_request_is_rejected` |
+| CO-4.4 | ☑ | `test_xss_in_document_fields_is_escaped` |
+| CO-4.5 | ☑ | `test_documents_are_wrapped_in_escaped_delimiters`, `test_escaping_blocks_delimiter_injection` |
+| CO-5.1 | ☑ | `test_without_key_nothing_is_sent` |
+| CO-5.2 | ☑ | `test_ui_does_not_claim_files_stay_local`, `test_ui_without_key_says_nothing_is_sent` |
+| CO-5.3 | ☑ | `test_security_headers_on_pages`, `test_api_match_returns_match` |
+| M-1 | ☑ | `test_samples_still_match`, `test_mismatch_sample_fails` |
+| M-2 | ☑ | `test_api_returns_400_on_invalid_invoice` |
+| M-3, M-4, M-6 | ☑ | `test_valid_narrative_is_accepted`, `test_audit_log_records_transmission` |
+| M-5 | ☑ | `test_xss_in_document_fields_is_escaped`, `test_escaping_blocks_delimiter_injection` |
+| N-1 | ☑ | CO-2.2 to CO-2.6 tests above |
+| N-2 | ☐ | Stated in the README and on the result page; not tested |
+| N-3 | ☑ | By code read: no write to disk in `webapp/app/` |
+| N-4 | ☑ | By code read: the only key is read from `GEMINI_API_KEY` |
+| N-5 | ☐ | Partly: input is delimited and escaped (CO-4.5); model compliance is not tested |
+| N-6 | ☑ | `test_model_cannot_set_run1_tolerances` |
 
 ## 7. Observability
 
-**Logged/traced today (CLI tool, on `main`):** two `print()` statements to stdout. No log file, no log levels, no timestamp beyond the PDF's own "Generated: <date>" footer line.
-
-**Missing:**
-- No record of who ran the tool, when, or against which specific CSV file versions.
-- No error/exception logging — an unhandled exception prints a raw Python traceback to stderr.
-- No run history — each execution overwrites the previous output files.
-- No linkage between a PDF report and the exact input data that produced it.
-
-Not assessed here: observability for `tools/scripts/generate_audit_report.py` or the new `webapp/` — both need their own review.
+Each AI run returns an audit trail (`audit_trail.json`, downloadable from the result page and returned by `/api/match/explain`): input file names and SHA-256 hashes, tolerances, the rule-based report, the AI status and reason, provider, model, both tool calls and the validated narrative. A rejected or failed AI answer is logged as a warning or error. The server keeps no copy.
