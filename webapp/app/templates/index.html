@@ -79,7 +79,7 @@
       </div>
 
       <div class="actions">
-        <button class="primary" type="submit">{{ t.ui.submit_button }}</button>
+        <button class="primary" type="submit" formaction="/match/explain">{{ t.ui.submit_button }}</button>
         <span class="sample-links">
           {{ t.ui.sample_prompt }}
           <a href="/sample/po_sample.csv" download>{{ t.ui.sample_po }}</a> ·
@@ -94,7 +94,7 @@
       {{ t.ui.formats_text_html | safe }}
     </p>
 
-    <footer class="bot">{{ t.ui.footer_text }}</footer>
+    <footer class="bot">{{ t.ui.footer_brand }} · {% if ai_enabled %}{{ t.ui.footer_ai_on }}{% else %}{{ t.ui.footer_ai_off }}{% endif %}</footer>
   </div>
 
 </body>

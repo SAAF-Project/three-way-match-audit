@@ -27,13 +27,32 @@
     {% set r = report %}
 
     <div class="verdict-card {{ r.result }}">
-      <p class="verdict-label">{{ t.ui.overall_label }}</p>
+      <p class="verdict-label">{{ t.ui.overall_label }}{% if narrative %} · {{ t.ui.ai_risk_label }}{% endif %}</p>
       <p class="verdict-value">
         {% if r.result == "MATCH" %}{{ t.ui.verdict_match_text }}
         {% elif r.result == "WARNING" %}{{ t.ui.verdict_warning_text }}
         {% else %}{{ t.ui.verdict_fail_text }}{% endif %}
+        {% if narrative %}
+          <span class="badge {{ narrative.risk_level }} badge-inline">{{ narrative.risk_level }}</span>
+        {% endif %}
       </p>
+      {% if narrative %}
+        <p class="verdict-summary">{{ narrative.summary }}</p>
+      {% endif %}
     </div>
+
+    {% if ai and ai.status != "ok" %}
+      <div class="header-issues ai-status">
+        <h4>{{ t.ui.ai_unavailable_title }}</h4>
+        <p>
+          {% if ai.status == "rejected" %}{{ t.ui.ai_status_rejected }}
+          {% elif ai.status == "unavailable" %}{{ t.ui.ai_status_unavailable }}
+          {% else %}{{ t.ui.ai_status_disabled }}{% endif %}
+          <code>{{ ai.reason }}</code>
+        </p>
+        <p>{{ t.ui.ai_independent_note }}</p>
+      </div>
+    {% endif %}
 
     <div class="summary-grid">
       <div class="summary-tile match">
@@ -80,7 +99,43 @@
       </div>
     {% endif %}
 
-    <div class="section-label">{{ t.ui.lines_section }}</div>
+    {% if narrative and narrative.ai_tolerances and ai_report %}
+      <div class="section-label">{{ t.ui.cmp_section }}</div>
+      <div class="tol-comparison">
+        {% for run_title, tol, rep in [
+             (t.ui.cmp_run1, {"price": user_tolerances.price_tolerance, "qty": user_tolerances.qty_tolerance, "total": user_tolerances.total_tolerance}, r),
+             (t.ui.cmp_run2, {"price": narrative.ai_tolerances.price_tolerance, "qty": narrative.ai_tolerances.qty_tolerance, "total": narrative.ai_tolerances.total_tolerance}, ai_report)] %}
+          <div class="tol-card">
+            <h4>{{ run_title }}</h4>
+            <dl>
+              <dt>{{ t.ui.cmp_price }}</dt><dd>€{{ "%.4f"|format(tol.price) }}</dd>
+              <dt>{{ t.ui.cmp_qty }}</dt><dd>{{ tol.qty }} {{ t.ui.cmp_units }}</dd>
+              <dt>{{ t.ui.cmp_total }}</dt><dd>€{{ "%.4f"|format(tol.total) }}</dd>
+            </dl>
+            <div class="tol-counts">
+              <div class="tol-count match"><span class="n">{{ rep.summary.MATCH }}</span><span class="lbl">{{ t.ui.summary_match }}</span></div>
+              <div class="tol-count warn"><span class="n">{{ rep.summary.WARNING }}</span><span class="lbl">{{ t.ui.summary_warning }}</span></div>
+              <div class="tol-count fail"><span class="n">{{ rep.summary.FAIL }}</span><span class="lbl">{{ t.ui.summary_fail }}</span></div>
+            </div>
+            <span class="badge {{ rep.result }} badge-run">{{ rep.result }}</span>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="tol-rationale">
+        <strong>{{ t.ui.ai_rationale_label }}</strong> {{ narrative.ai_tolerances.rationale }}
+      </div>
+    {% endif %}
+
+    {% if narrative and narrative.patterns %}
+      <div class="header-issues patterns-block">
+        <h4>{{ t.ui.patterns_title }}</h4>
+        <ul>
+          {% for p in narrative.patterns %}<li>{{ p }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <div class="section-label">{{ t.ui.lines_section }}{% if narrative %} {{ t.ui.lines_section_ai_suffix }}{% endif %}</div>
     <table class="lines">
       <thead>
         <tr>
@@ -94,11 +149,19 @@
           <th class="num">{{ t.ui.col_po_total }}</th>
           <th class="num">{{ t.ui.col_inv_total }}</th>
           <th>{{ t.ui.col_result }}</th>
+          {% if narrative %}<th>{{ t.ui.col_recommendation }}</th>{% endif %}
         </tr>
       </thead>
       <tbody>
         {% for l in r.line_results %}
           {% set cls = "diff-fail" if l.result == "FAIL" else ("diff-warn" if l.result == "WARNING" else "") %}
+          {% set ns = namespace(finding=None) %}
+          {% if narrative %}
+            {% for f in narrative.findings %}
+              {% set label = f.line|upper %}
+              {% if (l.sku and label == l.sku|upper) or label == "LINE " ~ l.line_number %}{% set ns.finding = f %}{% endif %}
+            {% endfor %}
+          {% endif %}
           <tr>
             <td>{{ l.line_number }}</td>
             <td>
@@ -118,18 +181,44 @@
             <td class="num">{% if l.po_total is not none %}€{{ "%.2f"|format(l.po_total) }}{% else %}—{% endif %}</td>
             <td class="num">{% if l.inv_total is not none %}€{{ "%.2f"|format(l.inv_total) }}{% else %}—{% endif %}</td>
             <td><span class="badge {{ l.result }}">{{ l.result }}</span></td>
+            {% if narrative %}
+              <td>
+                {% if ns.finding %}
+                  <span class="badge {{ ns.finding.risk }} badge-small">{{ ns.finding.risk }}</span>
+                  <div class="ai-rec">{{ ns.finding.recommendation }}</div>
+                {% else %}
+                  <span class="muted-dash">—</span>
+                {% endif %}
+              </td>
+            {% endif %}
           </tr>
         {% endfor %}
       </tbody>
     </table>
 
+    {% if narrative %}
+      <div class="action-banner">
+        <strong>{{ t.ui.action_label }}</strong> {{ narrative.overall_recommendation }}
+      </div>
+    {% endif %}
+
+    {% if audit_log_json %}
+      <div class="audit-trail-row">
+        <a class="download-link" href="data:application/json;charset=utf-8,{{ audit_log_json | urlencode }}" download="audit_trail.json">{{ t.ui.download_audit }}</a>
+        <span class="audit-trail-note">{{ t.ui.audit_trail_note }}</span>
+      </div>
+    {% endif %}
+
     <a href="/" class="back-link">{{ t.ui.back_link }}</a>
 
-    <footer class="bot">{{ t.ui.footer_text }}</footer>
+    <footer class="bot">{{ t.ui.footer_brand }} ·
+      {% if ai and ai.data_sent %}{{ t.ui.footer_sent.format(provider=ai.provider, model=ai.model) }}
+      {% else %}{{ t.ui.footer_not_sent }}{% endif %}
+    </footer>
   </div>
 
   {# Lets the language switcher re-run this match; see static/result_lang.js. #}
-  <form id="rerun-form" action="/match" method="post" enctype="multipart/form-data" hidden>
+  <form id="rerun-form" action="{{ rerun_action or '/match' }}" method="post" enctype="multipart/form-data" hidden>
     {% for f in rerun_files %}
       <input type="file" name="{{ f.field }}" data-filename="{{ f.filename }}" data-content="{{ f.content }}">
     {% endfor %}
