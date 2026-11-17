@@ -2,6 +2,11 @@
 
 Each test feeds the exact evasion from an issue through the parser and the
 matcher. Before the fix every one of them came back as a green MATCH.
+
+Invalid documents are stopped by the parser or by the pandera validation
+(services/validation.py). Where a rule also lives in the matcher as a
+backstop, a second test passes the bad document to the matcher directly and
+expects FAIL.
 """
 import pytest
 
@@ -28,6 +33,13 @@ def match(po: bytes, grn: bytes, inv: bytes, **tol):
         parse_document(inv, "inv.csv", "INVOICE"),
         **tol,
     )
+
+
+def valid_docs():
+    """Parsed PO, GRN and invoice that match, for mutating in matcher tests."""
+    return (parse_document(po_csv(), "po.csv", "PO"),
+            parse_document(grn_csv(), "grn.csv", "GRN"),
+            parse_document(inv_csv(), "inv.csv", "INVOICE"))
 
 
 def po_csv():
@@ -67,9 +79,17 @@ def test_mismatch_sample_fails():
 
 
 # --- Issue #16: blank, NaN, inf and 1e309 values --------------------------
-def test_blank_invoice_quantity_and_price_fail():
+def test_blank_invoice_quantity_and_price_are_rejected():
     lines = ["1,SKU-A100,Widget A,,,1225.00"] + PO_LINES[1:]
-    report = match(po_csv(), grn_csv(), inv_csv(lines))
+    with pytest.raises(ParseError, match="ontbreekt"):
+        parse_document(inv_csv(lines), "inv.csv", "INVOICE")
+
+
+def test_matcher_fails_on_missing_values():
+    po, grn, inv = valid_docs()
+    inv["lines"][0]["quantity"] = None
+    inv["lines"][0]["unit_price"] = None
+    report = three_way_match(po, grn, inv)
     assert report.result == "FAIL"
     line = report.line_results[0]
     assert line.result == "FAIL"
@@ -116,12 +136,26 @@ def test_api_json_is_valid_rfc8259(sample_bytes):
 
 
 # --- Issue #17: duplicate SKU rows hide a higher unit price ----------------
-def test_split_line_overpricing_fails():
-    lines = [
-        "1,SKU-A100,Widget A,1,24.50,24.50",
-        "2,SKU-A100,Widget A,49,999.00,1200.50",
-    ] + PO_LINES[1:]
-    report = match(po_csv(), grn_csv(), inv_csv(lines))
+SPLIT_OVERPRICED = [
+    "1,SKU-A100,Widget A,1,24.50,24.50",
+    "2,SKU-A100,Widget A,49,999.00,1200.50",
+] + PO_LINES[1:]
+
+
+def test_split_line_overpricing_is_rejected():
+    with pytest.raises(ParseError, match="regeltotaal|stukprijzen"):
+        parse_document(inv_csv(SPLIT_OVERPRICED), "inv.csv", "INVOICE")
+
+
+def test_matcher_fails_on_split_line_overpricing():
+    po, grn, inv = valid_docs()
+    inv["lines"][:1] = [
+        {"line_number": 1, "sku": "SKU-A100", "description": "Widget A",
+         "quantity": 1.0, "unit_price": 24.50, "line_total": 24.50},
+        {"line_number": 2, "sku": "SKU-A100", "description": "Widget A",
+         "quantity": 49.0, "unit_price": 999.00, "line_total": 1200.50},
+    ]
+    report = three_way_match(po, grn, inv)
     assert report.result == "FAIL"
     line = next(l for l in report.line_results if l.sku == "SKU-A100")
     assert line.result == "FAIL"
@@ -129,9 +163,16 @@ def test_split_line_overpricing_fails():
     assert any("komt niet overeen met regeltotaal" in i for i in line.issues)
 
 
-def test_line_arithmetic_is_checked():
+def test_line_arithmetic_is_rejected():
     lines = ["1,SKU-A100,Widget A,50,24.50,1300.00"] + PO_LINES[1:]
-    report = match(po_csv(), grn_csv(), inv_csv(lines))
+    with pytest.raises(ParseError, match="komt niet overeen met regeltotaal"):
+        parse_document(inv_csv(lines), "inv.csv", "INVOICE")
+
+
+def test_matcher_checks_line_arithmetic():
+    po, grn, inv = valid_docs()
+    inv["lines"][0]["line_total"] = 1300.00
+    report = three_way_match(po, grn, inv)
     assert report.result == "FAIL"
     assert any("komt niet overeen met regeltotaal" in i
                for i in report.line_results[0].issues)
@@ -152,9 +193,21 @@ def test_consistent_split_lines_still_match():
     ("supplier", "geen leveranciersnaam"),
     ("document_number", "geen documentnummer"),
 ])
-def test_empty_header_fields_fail(field, expect):
+def test_empty_header_fields_are_rejected(field, expect):
     header = "\n".join(l for l in INV_HEADER.splitlines() if not l.startswith(field)) + "\n"
-    report = match(po_csv(), grn_csv(), inv_csv(header=header))
+    with pytest.raises(ParseError, match=f"'{field}': is leeg"):
+        parse_document(inv_csv(header=header), "inv.csv", "INVOICE")
+
+
+@pytest.mark.parametrize("field,expect", [
+    ("po_number", "geen PO-referentie"),
+    ("supplier", "geen leveranciersnaam"),
+    ("document_number", "geen documentnummer"),
+])
+def test_matcher_fails_on_empty_header_fields(field, expect):
+    po, grn, inv = valid_docs()
+    inv[field] = ""
+    report = three_way_match(po, grn, inv)
     assert report.result == "FAIL"
     assert any(expect in i for i in report.header_issues), report.header_issues
 

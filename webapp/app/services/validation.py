@@ -5,13 +5,18 @@ any rule is rejected with a ParseError, so the matcher never sees data
 that could slip past its checks. The rules are declared as pandera
 schemas so they can be read and reviewed as audit evidence.
 
-Covered (see GitHub issues):
-  #16  blank / NaN / infinite quantity or unit price
-  #17  quantity x unit price != line total; one SKU with several prices
-  #19  empty header fields; conflicting header values in a flat CSV
-  #21  spreadsheet formula injection (=, +, -, @, tab, CR at cell start)
-  plus: ambiguous columns (two aliases for the same field, e.g. both
-        `quantity` and `quantity_billed`), see sample_data/invoice_evasion.csv
+Division of work (one owner per rule):
+  parsers.py     reading the file — number notation (NaN, inf, 1e309,
+                 negative, "1,000"), conflicting alias columns
+                 (sample_data/invoice_evasion.csv), flat-CSV rows naming
+                 different POs or suppliers, formula cells (#21), limits.
+  this module    the parsed document's data quality —
+                   #16  quantity and (PO / invoice) unit price present,
+                        amounts between 0 and MAX_AMOUNT
+                   #17  quantity x unit price = line total; one price per SKU
+                   #19  document number, PO reference and supplier present
+  matcher.py     repeats the essential checks as a backstop for callers
+                 that pass documents in directly.
 """
 from __future__ import annotations
 
@@ -24,22 +29,9 @@ from pandera.errors import SchemaErrors
 # Rounding slack for quantity x unit price vs. line total. This is not the
 # user-facing tolerance: a document must be internally consistent.
 ARITHMETIC_TOLERANCE = 0.01
-# Upper bound against absurd or overflow-like values.
+# Upper bound against absurd or overflow-like values; parsers.py uses it too.
 MAX_AMOUNT = 1e12
-# Cells starting with these characters are run as formulas by Excel and
-# LibreOffice (OWASP "CSV injection").
-FORMULA_PATTERN = r"^[=+\-@\t\r]"
 MAX_REPORTED_ERRORS = 10
-
-# Field -> accepted column aliases. Must match parsers._LINE_*_KEYS.
-LINE_ALIASES: dict[str, tuple[str, ...]] = {
-    "quantity": ("quantity", "qty", "quantity_received", "quantity_billed"),
-    "unit_price": ("unit_price", "price", "unitprice"),
-    "line_total": ("line_total", "total", "amount", "line_amount"),
-    "sku": ("sku", "item", "item_code", "article", "material"),
-    "description": ("description", "desc", "text", "item_description"),
-}
-HEADER_COLUMNS_IN_LINES = ("document_number", "po_number", "supplier")
 
 
 class ValidationFailed(ValueError):
@@ -53,14 +45,6 @@ class ValidationFailed(ValueError):
 # ---------------------------------------------------------------------------
 # Reusable checks
 # ---------------------------------------------------------------------------
-def _no_formula() -> pa.Check:
-    return pa.Check(
-        lambda s: ~s.fillna("").astype(str).str.match(FORMULA_PATTERN),
-        element_wise=False,
-        error="begint met =, +, -, @ of een tab (mogelijke formule-injectie)",
-    )
-
-
 def _finite_amount() -> list[pa.Check]:
     # in_range rejects +/-inf (and 1e309, which parses to inf) as well.
     return [pa.Check.in_range(0, MAX_AMOUNT, error="moet een eindig getal tussen 0 en 10^12 zijn")]
@@ -91,8 +75,8 @@ def _lines_schema(doc_type: str) -> pa.DataFrameSchema:
     priced = doc_type in ("PO", "INVOICE")
     return pa.DataFrameSchema(
         {
-            "sku": pa.Column(str, [_no_formula()], nullable=True),
-            "description": pa.Column(str, [_no_formula()], nullable=True),
+            "sku": pa.Column(str, nullable=True),
+            "description": pa.Column(str, nullable=True),
             "quantity": pa.Column(float, _finite_amount(), nullable=False),
             "unit_price": pa.Column(float, _finite_amount(), nullable=not priced),
             "line_total": pa.Column(float, _finite_amount(), nullable=True),
@@ -109,9 +93,9 @@ def _lines_schema(doc_type: str) -> pa.DataFrameSchema:
 
 _HEADER_SCHEMA = pa.DataFrameSchema(
     {
-        "document_number": pa.Column(str, [_not_empty(), _no_formula()]),
-        "po_number": pa.Column(str, [_not_empty(), _no_formula()]),
-        "supplier": pa.Column(str, [_not_empty(), _no_formula()]),
+        "document_number": pa.Column(str, [_not_empty()]),
+        "po_number": pa.Column(str, [_not_empty()]),
+        "supplier": pa.Column(str, [_not_empty()]),
     },
 )
 
@@ -125,10 +109,6 @@ def validate_document(raw: dict[str, Any], doc: dict[str, Any], doc_type: str) -
     Raises ValidationFailed with up to MAX_REPORTED_ERRORS messages.
     """
     errors: list[str] = []
-    raw_lines = raw.get("lines") or raw.get("items") or []
-    if isinstance(raw_lines, list) and raw_lines and all(isinstance(r, dict) for r in raw_lines):
-        errors += _check_raw_lines(pd.DataFrame(raw_lines))
-
     if not doc["lines"]:
         errors.append("Document bevat geen regels.")
     else:
@@ -137,8 +117,7 @@ def validate_document(raw: dict[str, Any], doc: dict[str, Any], doc_type: str) -
 
     header_values = {k: doc.get(k, "") for k in ("document_number", "po_number", "supplier")}
     if doc_type in ("GRN", "INVOICE"):
-        # The parser falls back to the document's own number when po_number
-        # is missing; a GRN or invoice must carry an explicit PO reference.
+        # A GRN or invoice must carry its own explicit PO reference.
         header_values["po_number"] = str(raw.get("po_number") or "").strip()
     header = pd.DataFrame([header_values])
     errors += _run(_HEADER_SCHEMA, header, prefix="Kop")
@@ -149,33 +128,6 @@ def validate_document(raw: dict[str, Any], doc: dict[str, Any], doc_type: str) -
         if extra > 0:
             msgs.append(f"... en nog {extra} andere fout(en).")
         raise ValidationFailed(msgs)
-
-
-def _check_raw_lines(df: pd.DataFrame) -> list[str]:
-    errors: list[str] = []
-    filled = df.apply(lambda s: s.notna() & (s.astype(str).str.strip() != ""))
-
-    # Two aliases for one field on the same row: the parser would silently
-    # pick one, so a crafted file could show the matcher other numbers than
-    # a human reads.
-    for field, aliases in LINE_ALIASES.items():
-        present = [a for a in aliases if a in df.columns]
-        if len(present) > 1 and (filled[present].sum(axis=1) > 1).any():
-            errors.append(
-                f"Dubbelzinnige kolommen voor '{field}': {', '.join(present)}. "
-                "Gebruik er één."
-            )
-
-    # Header fields repeated per line (flat CSV) must agree on every row.
-    for col in HEADER_COLUMNS_IN_LINES:
-        if col in df.columns:
-            values = df.loc[filled[col], col].astype(str).str.strip()
-            if values.nunique() > 1:
-                errors.append(
-                    f"Kolom '{col}' heeft verschillende waarden per regel: "
-                    f"{', '.join(sorted(values.unique())[:5])}."
-                )
-    return errors
 
 
 def _run(schema: pa.DataFrameSchema, df: pd.DataFrame, *, prefix: str,

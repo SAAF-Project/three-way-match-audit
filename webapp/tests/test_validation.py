@@ -1,4 +1,11 @@
-"""Tests for the pandera validation layer (app/services/validation.py)."""
+"""Tests for rejecting invalid documents.
+
+Two layers reject: the parser (file format, number notation, alias columns,
+flat-CSV consistency, formula cells) and the pandera validation in
+app/services/validation.py (required fields, ranges, arithmetic, one price
+per SKU). These tests check that a document is rejected and why, not which
+layer caught it, so either may own a rule.
+"""
 from __future__ import annotations
 
 import json
@@ -24,10 +31,14 @@ def _invoice(lines: str, **kw) -> dict:
     return parse_document(_csv(lines, **kw), "invoice.csv", "INVOICE")
 
 
-def _rejects(data: bytes, fragment: str, doc_type: str = "INVOICE", name: str = "invoice.csv"):
+def _rejects(data: bytes, *fragments: str, doc_type: str = "INVOICE", name: str = "invoice.csv"):
+    """Assert the document is rejected, the message names the file, and it
+    contains at least one of `fragments` (the reason, in either layer's words)."""
     with pytest.raises(ParseError) as exc:
         parse_document(data, name, doc_type)
-    assert fragment in str(exc.value), str(exc.value)
+    msg = str(exc.value)
+    assert msg.startswith(f"'{name}': "), msg
+    assert any(f.lower() in msg.lower() for f in fragments), msg
 
 
 # --- the shipped samples stay valid ---------------------------------------
@@ -51,12 +62,12 @@ def test_valid_invoice_passes():
 # --- #16 blank / NaN / infinite numbers -----------------------------------
 @pytest.mark.parametrize("qty", ["", "nan", "NaN"])
 def test_missing_or_nan_quantity_rejected(qty):
-    _rejects(_csv(f"1,SKU-A,Widget,{qty},10.00,20.00\n"), "'quantity': ontbreekt")
+    _rejects(_csv(f"1,SKU-A,Widget,{qty},10.00,20.00\n"), "'quantity': ontbreekt", "aantal")
 
 
 @pytest.mark.parametrize("value", ["inf", "1e309", "-5"])
 def test_infinite_or_negative_price_rejected(value):
-    _rejects(_csv(f"1,SKU-A,Widget,2,{value},20.00\n"), "'unit_price'")
+    _rejects(_csv(f"1,SKU-A,Widget,2,{value},20.00\n"), "'unit_price'", "stukprijs")
 
 
 def test_blank_price_rejected_on_invoice_but_allowed_on_grn():
@@ -69,7 +80,7 @@ def test_nan_in_json_rejected():
     data = json.dumps({"document_number": "INV-1", "po_number": "PO-1", "supplier": "ACME",
                        "lines": [{"sku": "A", "quantity": float("nan"),
                                   "unit_price": 1, "line_total": 1}]}).encode()
-    _rejects(data, "ontbreekt", name="invoice.json")
+    _rejects(data, "ontbreekt", "NaN", name="invoice.json")
 
 
 # --- #17 arithmetic and split-line overpricing ----------------------------
@@ -97,19 +108,19 @@ def test_flat_csv_with_conflicting_po_rejected():
     data = (b"document_number,po_number,supplier,sku,quantity,unit_price,line_total\n"
             b"INV-1,PO-1,ACME,SKU-A,1,10,10\n"
             b"INV-1,PO-2,ACME,SKU-B,1,10,10\n")
-    _rejects(data, "'po_number' heeft verschillende waarden")
+    _rejects(data, "verschillende waarden voor 'po_number'")
 
 
 # --- #21 formula injection ------------------------------------------------
 @pytest.mark.parametrize("cell", ["=HYPERLINK(1)", "@SUM(A1)", "+1+1", "-2+3"])
 def test_formula_in_text_field_rejected(cell):
-    _rejects(_csv("1,SKU-A," + cell + ",2,10.00,20.00\n"), "formule-injectie")
+    _rejects(_csv("1,SKU-A," + cell + ",2,10.00,20.00\n"), "formule")
 
 
 # --- ambiguous alias columns ----------------------------------------------
 def test_evasion_sample_rejected():
     data = (SAMPLES / "invoice_evasion.csv").read_bytes()
-    _rejects(data, "Dubbelzinnige kolommen voor 'quantity'")
+    _rejects(data, "geven verschillende waarden")
 
 
 # --- end-to-end -----------------------------------------------------------
@@ -122,7 +133,7 @@ def test_api_returns_400_on_invalid_invoice():
     }
     resp = client.post("/api/match", files=files)
     assert resp.status_code == 400
-    assert "Validatie van 'inv.csv' mislukt" in resp.json()["error"]
+    assert resp.json()["error"].startswith("'inv.csv': ")
 
 
 def test_api_still_matches_valid_samples():

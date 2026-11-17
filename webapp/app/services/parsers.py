@@ -39,7 +39,7 @@ import math
 import re
 from typing import Any
 
-from app.services.validation import ValidationFailed, validate_document
+from app.services.validation import MAX_AMOUNT, ValidationFailed, validate_document
 
 
 class ParseError(ValueError):
@@ -51,7 +51,6 @@ DOC_TYPES = {"PO", "GRN", "INVOICE"}
 # Input limits. The web layer also caps the upload size in bytes.
 MAX_LINES = 5000
 MAX_TEXT_LENGTH = 500
-MAX_AMOUNT = 1e12  # no quantity or euro amount in a P2P document comes near this
 
 # A text cell that starts with one of these is run as a formula when the file
 # is opened in Excel or another spreadsheet (CSV / formula injection).
@@ -69,45 +68,52 @@ _BINARY_SIGNATURES = (
 # Public entry point
 # ---------------------------------------------------------------------------
 def parse_document(raw: bytes, filename: str, doc_type: str) -> dict[str, Any]:
+    """Parse, normalise and validate one uploaded document.
+
+    Two layers reject bad input, each with its own job:
+      1. this module — reading the file: formats, number notation, column
+         aliases, flat-CSV consistency, formula cells, size limits;
+      2. services/validation.py (pandera) — data quality of the parsed
+         document: required fields, value ranges, line arithmetic, one price
+         per SKU.
+    Every error message starts with the file name, so the user knows which
+    of the three uploads to fix.
+    """
     doc_type = doc_type.upper()
     if doc_type not in DOC_TYPES:
         raise ParseError(f"Onbekend documenttype: {doc_type}")
 
-    _check_content(raw, filename)
-
-    lower = filename.lower()
-    if lower.endswith(".json"):
-        parsed = _parse_json(raw)
-    elif lower.endswith(".csv"):
-        parsed = _parse_csv(raw)
-    else:
-        raise ParseError(
-            f"Bestandstype niet ondersteund voor '{filename}'. Gebruik .csv of .json."
-        )
-
-    doc = _normalise(parsed, doc_type)
     try:
+        _check_content(raw)
+        lower = filename.lower()
+        if lower.endswith(".json"):
+            parsed = _parse_json(raw)
+        elif lower.endswith(".csv"):
+            parsed = _parse_csv(raw)
+        else:
+            raise ParseError("Bestandstype niet ondersteund. Gebruik .csv of .json.")
+        doc = _normalise(parsed, doc_type)
         validate_document(parsed, doc, doc_type)
     except ValidationFailed as e:
-        raise ParseError(
-            f"Validatie van '{filename}' mislukt: " + "; ".join(e.messages)
-        ) from e
+        raise ParseError(f"'{filename}': " + "; ".join(e.messages)) from e
+    except ParseError as e:
+        raise ParseError(f"'{filename}': {e}") from e
     return doc
 
 
-def _check_content(raw: bytes, filename: str) -> None:
+def _check_content(raw: bytes) -> None:
     """Reject empty and binary files before any parser sees them. The file
     extension and the browser's MIME type are claims; the bytes are not."""
     if not raw or not raw.strip():
-        raise ParseError(f"'{filename}' is leeg.")
+        raise ParseError("Bestand is leeg.")
     for signature, what in _BINARY_SIGNATURES:
         if raw.startswith(signature):
             raise ParseError(
-                f"'{filename}' is {what}, geen CSV of JSON. "
+                f"Dit is {what}, geen CSV of JSON. "
                 "Exporteer het blad als CSV (UTF-8) en upload dat bestand."
             )
     if b"\x00" in raw[:8192]:
-        raise ParseError(f"'{filename}' is een binair bestand, geen CSV of JSON.")
+        raise ParseError("Dit is een binair bestand, geen CSV of JSON.")
 
 
 # ---------------------------------------------------------------------------

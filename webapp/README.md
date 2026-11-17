@@ -23,23 +23,17 @@ Vergelijkt drie documenten op:
 
 En geeft per regel én overall een oordeel: `MATCH` / `WARNING` / `FAIL`.
 
-## Datavalidatie (pandera)
+## Invoercontrole in drie lagen
 
-Vóór de match wordt elk document gevalideerd met [pandera](https://pandera.readthedocs.io/)
-(`app/services/validation.py`). Een document dat een regel schendt wordt geweigerd
-(HTTP 400) met een lijst van fouten; de match draait dan niet.
+Elke regel heeft één eigenaar. Een ongeldig document wordt geweigerd (HTTP 400) en de match draait dan niet. De foutmelding begint met de bestandsnaam, zodat je ziet welke van de drie uploads je moet aanpassen.
 
-| Regel | Waarom |
-|---|---|
-| `quantity` verplicht, eindig en ≥ 0; `unit_price` idem op PO en factuur | lege/`nan`/`inf`-waarden sloegen controles over |
-| aantal × stukprijs = regeltotaal (± €0,01) | verborgen overprijzing |
-| één stukprijs per SKU binnen een document | gesplitste regels met afwijkende prijs |
-| `document_number`, `supplier` en (op GRN/factuur) `po_number` niet leeg | lege kop omzeilde de kopcontrole |
-| kopvelden in een platte CSV gelijk op elke regel | afwijkende PO/leverancier in latere regels |
-| geen tekstveld dat begint met `=`, `+`, `-`, `@`, tab of CR | formule-injectie bij openen in Excel |
-| geen twee aliassen voor hetzelfde veld (bv. `quantity` én `quantity_billed`) | dubbelzinnige kolommen, zie `sample_data/invoice_evasion.csv` |
+| Laag | Bestand | Controleert |
+|---|---|---|
+| Parser | `app/services/parsers.py` | Bestandsformaat, getalnotatie, aliaskolommen, platte CSV, formulecellen en limieten |
+| Datavalidatie ([pandera](https://pandera.readthedocs.io/)) | `app/services/validation.py` | Verplichte velden, bereik van bedragen, aantal × stukprijs = regeltotaal (± €0,01) en één stukprijs per SKU |
+| Matcher | `app/services/matcher.py` | De vergelijking zelf. Herhaalt de belangrijkste controles als vangnet voor wie de matcher direct aanroept |
 
-Tests: `pip install -r requirements-dev.txt && python -m pytest tests`.
+Alle regels staan onder [Invoercontrole en beveiliging](#invoercontrole-en-beveiliging).
 
 ## Ondersteunde formaten
 
@@ -76,7 +70,7 @@ Voorbeeldbestanden staan in [`sample_data/`](sample_data/).
 
 De match faalt dicht (*no silent pass*): een controle die niet kan worden uitgevoerd, levert `FAIL` op en nooit een stille `MATCH`.
 
-**Bestanden die worden geweigerd** (foutmelding, geen resultaat):
+**Geweigerd door de parser** (foutmelding, geen resultaat):
 
 - groter dan 1 MB per bestand, of meer dan 5000 regels;
 - een Excel-, zip-, PDF- of ander binair bestand, ook als het `.csv` heet. Exporteer Excel als CSV (UTF-8);
@@ -87,14 +81,20 @@ De match faalt dicht (*no silent pass*): een controle die niet kan worden uitgev
 - een platte CSV waarvan de regels naar verschillende PO's of leveranciers verwijzen;
 - regels na een lege regel die een tweede regelblok vormen.
 
-**Wat altijd `FAIL` oplevert:**
+**Geweigerd door de datavalidatie** (pandera):
 
-- een ontbrekend PO-nummer, documentnummer of leveranciersnaam op een van de documenten;
-- een ontbrekend aantal of een ontbrekende stukprijs, en op de factuur ook een ontbrekend regeltotaal;
+- een ontbrekend documentnummer, ontbrekende PO-referentie of ontbrekende leveranciersnaam;
+- een ontbrekend aantal, of een ontbrekende stukprijs op de PO of factuur;
 - aantal × stukprijs ≠ regeltotaal op een regel;
-- hetzelfde artikel op meerdere regels met verschillende stukprijzen;
+- hetzelfde artikel op meerdere regels met verschillende stukprijzen.
+
+**`FAIL` in de match:**
+
 - een vermeld documenttotaal dat afwijkt van de som van de regels;
-- een gefactureerde regel die niet op de goederenontvangst staat.
+- een gefactureerde regel die niet op de goederenontvangst staat;
+- afwijkingen tussen PO, ontvangst en factuur buiten de toleranties.
+
+De matcher geeft ook `FAIL` op alle regels van de datavalidatie. Dat vangnet geldt voor wie de matcher direct aanroept, zonder de parser.
 
 **HTTP:**
 
