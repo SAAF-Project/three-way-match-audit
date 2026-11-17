@@ -1,6 +1,6 @@
 # P2P 3-Way Match Audit
 
-**Live demo:** https://three-way-match-audit-iota.vercel.app/
+**Live demo:** https://three-way-match-audit.vercel.app/
 
 ## Purpose
 
